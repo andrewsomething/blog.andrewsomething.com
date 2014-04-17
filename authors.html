@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="asb@ubuntu:~$, An underused blog...">
+
+
+        <title>asb@ubuntu:~$ - Authors</title>
+
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pure.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/style.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pygments.css">
+
+        <script src="http://localhost:8000/theme/js/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+    <h1>Authors on asb@ubuntu:~$</h1>        <li><a href="http://localhost:8000/author/andrewsomething.html">andrewsomething</a> (26)</li>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>

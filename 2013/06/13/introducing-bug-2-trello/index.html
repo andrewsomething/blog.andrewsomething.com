@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+
+
+        <title>Introducing Bug 2 Trello</title>
+
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pure.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/style.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pygments.css">
+
+        <script src="http://localhost:8000/theme/js/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+<div class="sidebar pure-u">
+    <div class="cover-img" style="background-color: #272822">
+        <div class="cover-body">
+            <header class="header">
+                <hgroup>
+                    <a href="/"><img class="avatar" src="http://www.gravatar.com/avatar/c5187279a8111c09cb5960e47fdc03a8" height="72" width="72"></a>
+                    <h1 class="brand-main"><a href="/">asb@ubuntu:~$</a></h1>
+                    <p class="tagline">An underused blog...</p>
+                    <div class="pages-menu">
+                        <p>
+                            <span class="links pages"><a href="http://localhost:8000/">Home</a></span>
+                                <span class="separator">&#x2022; </span><span class="links pages active"><a href="http://localhost:8000/pages/about/">About</a></span>
+                        </p>
+                    </div>
+                    <p class="social-links">
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="http://localhost:8000/images/social/github.png" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="http://localhost:8000/images/social/launchpad.png" title="Launchpad"></a>
+                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="http://localhost:8000/images/social/google+.png" title="Google+"></a>
+                            <a target="_blank" class="social RssFeed" href="#"><img src="http://localhost:8000/images/social/rssfeed.png" title="RssFeed"></a>
+                    </p>
+                </hgroup>
+            </header>
+        </div>
+    </div>
+</div>    <div class="pure-u-3-4">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>Introducing Bug 2&nbsp;Trello</h1>
+                        <p class="post-meta">
+                            meta = {'category': <a href="http://localhost:8000/category/bug-2-trello/">Bug 2 Trello</a>, 'date': Thu 13 June 2013}
+                            <div class="meta-tags">
+                                tags = [<a class="post-category" href="http://localhost:8000/tag/app-development/">app-development</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/bugs/">bugs</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/chrome/">chrome</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/trello/">trello</a><span class="comma">, </span>]
+                            </div>
+                        </p>
+                </header>
+            </section>
+            <p>For some time now, I&#8217;ve been using <a href="https://trello.com/">Trello</a> to organize my free
+software contributions. My main use is to give me a cross-project view
+of what I&#8217;m working on. As most of my contributions stem from packaging
+software for Debian and Ubuntu, I end up working on and following bugs
+across many different hosting projects (e.g. Launchpad, Debian&#8217;s <span class="caps">BTS</span>,
+GitHub). Each does a decent job (some better than others) of displaying
+and prioritizing issues within a certain project. Though a bug that is
+critical in a project that I&#8217;m only tangentially interested in might be
+a lower priority from me personally than a wishlist issue in a different
+project. So Trello has been extremely helpful in giving me a global view
+of how I should be spending my limited time across projects. Though
+putting information from all of these different places into Trello can
+be&nbsp;tedious&#8230;</p>
+<p>So that&#8217;s why I created <a href="https://chrome.google.com/webstore/detail/bug-2-trello/aomnoofmdnaccffobkddehcmdihggcke">Bug 2 Trello,</a> a Chrome extension to add
+bugs/issues to a Trello&nbsp;board.</p>
+<iframe width="560" height="315" src="//www.youtube.com/embed/MMgeP0DH9c4" frameborder="0" allowfullscreen></iframe>
+
+<p>It currently supports Launchpad, GitHub, SourceForge, Google Code,
+BitBucket, and Debian&#8217;s <span class="caps">BTS</span>. There is also support for some Bugzilla
+instances. This support currently requires that the <span class="caps">JSON</span>-<span class="caps">RPC</span> interface
+is available. It is known to work with with Wikimedia, Mozilla, <span class="caps">KDE</span>,
+Apache, and Redhat. It is known <em>not</em> to work with <span class="caps">GNOME</span>, Kernel.org,
+and&nbsp;Novell.</p>
+<ul>
+<li>Install it from the Chrome
+    Store: <a href="https://chrome.google.com/webstore/detail/bug2trello/aomnoofmdnaccffobkddehcmdihggcke">https://chrome.google.com/webstore/detail/bug2trello/aomnoofmdnaccffobkddehcmdihggcke</a></li>
+<li>Report bugs: <a href="https://github.com/andrewsomething/bug2trello/issues">https://github.com/andrewsomething/bug2trello/issues</a></li>
+<li>Grab the
+    code: <code>git clone git://github.com/andrewsomething/bug2trello.git</code></li>
+</ul>
+<p>Bug 2 Trello is licensed under the <span class="caps">MIT</span>&nbsp;License.</p>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+<footer class="footer">
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a modified theme based on <a href="https://github.com/danclaudiupop/pure">Pure</a>.
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>
