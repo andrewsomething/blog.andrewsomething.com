@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+
+
+        <title>PPAs and Daily Builds</title>
+
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pure.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/style.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pygments.css">
+
+        <script src="http://localhost:8000/theme/js/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+<div class="sidebar pure-u">
+    <div class="cover-img" style="background-color: #272822">
+        <div class="cover-body">
+            <header class="header">
+                <hgroup>
+                    <a href="/"><img class="avatar" src="http://www.gravatar.com/avatar/c5187279a8111c09cb5960e47fdc03a8" height="72" width="72"></a>
+                    <h1 class="brand-main"><a href="/">asb@ubuntu:~$</a></h1>
+                    <p class="tagline">An underused blog...</p>
+                    <div class="pages-menu">
+                        <p>
+                            <span class="links pages"><a href="http://localhost:8000/">Home</a></span>
+                                <span class="separator">&#x2022; </span><span class="links pages active"><a href="http://localhost:8000/pages/about/">About</a></span>
+                        </p>
+                    </div>
+                    <p class="social-links">
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="http://localhost:8000/images/social/github.png" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="http://localhost:8000/images/social/launchpad.png" title="Launchpad"></a>
+                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="http://localhost:8000/images/social/google+.png" title="Google+"></a>
+                            <a target="_blank" class="social RssFeed" href="#"><img src="http://localhost:8000/images/social/rssfeed.png" title="RssFeed"></a>
+                    </p>
+                </hgroup>
+            </header>
+        </div>
+    </div>
+</div>    <div class="pure-u-3-4">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>PPAs and Daily&nbsp;Builds</h1>
+                        <p class="post-meta">
+                            meta = {'category': <a href="http://localhost:8000/category/ubuntu/">Ubuntu</a>, 'date': Wed 10 June 2009}
+                            <div class="meta-tags">
+                                tags = [<a class="post-category" href="http://localhost:8000/tag/bzr/">bzr</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/daily-builds/">daily builds</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/ppa/">ppa</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/ubuntu/">Ubuntu</a><span class="comma">, </span>]
+                            </div>
+                        </p>
+                </header>
+            </section>
+            <p>So earlier today I was throwing together a script to publish bzr
+snapshots to a <span class="caps">PPA</span>. My use case was pretty simple. It&#8217;s a debian native
+package. So the packaging and upstream are one and the same, so no need
+to merge branches or make sure patches apply cleanly. Basically just
+pull, build, and publish with a little bit of magic to set the versions&nbsp;correctly.</p>
+<p>But as I know there are a number of PPAs publishing snapshots of
+upstream sources, I wanted to take a look around and see what others are
+using. Unfortunetely, there doesn&#8217;t really seem to be a location
+pointing to a list of projects or with general information on how to go
+about doing this. So here are some of the things I came across, just to
+put it one place. Maybe it&#8217;s time for a wiki&nbsp;page?</p>
+<p>First of all, <a href="https://edge.launchpad.net/~james-w">James Westby</a> is up to something really exciting with
+bzr-builder (a plugin for bzr written in python) and Daily Debs. The
+basic idea is to make doing nightly builds of upstream projects almost
+trivial by using simple recipe files while bzr-builder does all the
+heavy lifting. A recipie file could look as simple as&nbsp;this:</p>
+<blockquote>
+<div class="highlight"><pre><span class="n">branch</span> <span class="n">lp</span><span class="o">:</span><span class="n">foo</span>
+<span class="n">merge</span> <span class="n">lp</span><span class="o">:</span><span class="n">foo</span><span class="o">/</span><span class="n">debian</span><span class="o">-</span><span class="n">pkg</span>
+</pre></div>
+
+
+</blockquote>
+<p>I can&#8217;t wait to see where this is going and to hear more about the
+discussions around it at <span class="caps">UDS</span>.</p>
+<p>You can find the spec here:&nbsp;https://wiki.ubuntu.com/DailyUpstreamBuildsPOCSpec</p>
+<p>The code for bzr-builder is here:&nbsp;https://code.edge.launchpad.net/~james-w/bzr-builder/trunk</p>
+<p>And a <span class="caps">PPA</span> of bzr-builder made with bzr-builder is here:&nbsp;https://edge.launchpad.net/~dailydebs-team/+archive/bzr-builder</p>
+<p>Some of the most used daily build PPAs are probably the <a href="https://edge.launchpad.net/%7Eubuntu-mozilla-daily/+archive/ppa">Mozilla Daily
+Builds</a> and  <a href="https://edge.launchpad.net/%7Echromium-daily/+archive/ppa">Chromium Daily Builds</a>. Along with the
+<a href="https://edge.launchpad.net/%7Egwibber-daily/+archive/ppa">gwibber-daily</a> <span class="caps">PPA</span>, these are run by <a href="https://code.edge.launchpad.net/%7Efta">Fabien Tassin</a>. The bash
+scripts he uses to produce them can be found here:&nbsp;https://code.edge.launchpad.net/~fta/+junk/ppa-scripts</p>
+<p><a href="http://amarok.kde.org/wiki/User:Apachelogger/Project_Neon">Project Neon</a> has a <a href="https://edge.launchpad.net/~project-neon/+archive/ppa"><span class="caps">PPA</span></a>delivering nighly builds of Amarok and
+other <span class="caps">KDE</span> goodies. The build scripts are written in Ruby and hosted on
+<span class="caps">KDE</span>&#8217;s svn:&nbsp;http://websvn.kde.org/trunk/extragear/multimedia/amarok/supplementary_scripts/neon/</p>
+<p>Anyone else doing something cool? Know where to find some more&nbsp;examples?</p>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+    <div class="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_identifier = "2009/06/10/ppas-and-daily-builds/";
+            var disqus_url = "http://localhost:8000/2009/06/10/ppas-and-daily-builds/";
+            (function() {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = 'http://andrewsomething.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+    </div>
+<footer class="footer">
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a modified theme based on <a href="https://github.com/danclaudiupop/pure">Pure</a>.
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>

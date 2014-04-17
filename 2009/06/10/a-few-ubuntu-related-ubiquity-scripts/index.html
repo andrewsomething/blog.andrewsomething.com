@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+
+
+        <title>A Few Ubuntu-related Ubiquity Scripts</title>
+
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pure.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/style.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pygments.css">
+
+        <script src="http://localhost:8000/theme/js/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+<div class="sidebar pure-u">
+    <div class="cover-img" style="background-color: #272822">
+        <div class="cover-body">
+            <header class="header">
+                <hgroup>
+                    <a href="/"><img class="avatar" src="http://www.gravatar.com/avatar/c5187279a8111c09cb5960e47fdc03a8" height="72" width="72"></a>
+                    <h1 class="brand-main"><a href="/">asb@ubuntu:~$</a></h1>
+                    <p class="tagline">An underused blog...</p>
+                    <div class="pages-menu">
+                        <p>
+                            <span class="links pages"><a href="http://localhost:8000/">Home</a></span>
+                                <span class="separator">&#x2022; </span><span class="links pages active"><a href="http://localhost:8000/pages/about/">About</a></span>
+                        </p>
+                    </div>
+                    <p class="social-links">
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="http://localhost:8000/images/social/github.png" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="http://localhost:8000/images/social/launchpad.png" title="Launchpad"></a>
+                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="http://localhost:8000/images/social/google+.png" title="Google+"></a>
+                            <a target="_blank" class="social RssFeed" href="#"><img src="http://localhost:8000/images/social/rssfeed.png" title="RssFeed"></a>
+                    </p>
+                </hgroup>
+            </header>
+        </div>
+    </div>
+</div>    <div class="pure-u-3-4">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>A Few Ubuntu-related Ubiquity&nbsp;Scripts</h1>
+                        <p class="post-meta">
+                            meta = {'category': <a href="http://localhost:8000/category/ubuntu/">Ubuntu</a>, 'date': Wed 10 June 2009}
+                            <div class="meta-tags">
+                                tags = [<a class="post-category" href="http://localhost:8000/tag/firefox/">firefox</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/ubuntu/">Ubuntu</a><span class="comma">, </span>]
+                            </div>
+                        </p>
+                </header>
+            </section>
+            <p>Awhile back I hacked up a few Ubuntu releated scripts for Ubiquity. No,
+not the Ubuntu installer. The Firefox add-on.  Now that I have one of
+these fancy blog thing-a-majigs, I figured I&#8217;d share them with all of
+you. Hopefully some one else will find them&nbsp;useful.</p>
+<p>To make a long story short, <a href="http://labs.mozilla.com/projects/ubiquity/">Ubiquity</a> is <span class="caps">GNOME</span>-Do for your&nbsp;browser.</p>
+<p>I&#8217;ve got a number of simple scripts that you can use with it to do
+Ubuntu related tasks in&nbsp;Firefox:</p>
+<ul>
+<li>AptURL - Install a package using AptURL. If you&#8217;re reading a post
+    about a package, just highlight the package name and call Ubiquity.
+    No need to open a terminal or package manager. Usage: <code>apturl
+    [package]</code></li>
+<li>Debian Package Search - One of the sites I end up using the most in
+    my <span class="caps">MOTU</span> work is http://packages.debian.org/ This brings it just a
+    keystroke away. Usage: <code>debian-packages [package]</code></li>
+<li>Launchpad Ubuntu Package Search - You guessed it. Search Ubuntu
+    packages on <span class="caps">LP</span>. Usage: <code>lp-packages [package]</code></li>
+<li>Launchpad Team and People Search - What do you think it does? Usage:
+    <code>lp-team-and-people [team or person]</code></li>
+<li>Launchpad Ubuntu Bug Search - Simular to the two above&#8230; 
+    <code>lp-ubuntu-bug [bug \# or description]</code></li>
+<li>Ubuntu Man Page Search - Read the man page! Usage: <code>ubuntu-man
+    [package]</code></li>
+<li>Ubuntu Package database searcher- This one searches
+    packages.ubuntu.com It was written by David Futcher (<a href="https://edge.launchpad.net/~bobbo">bobbo</a>), and
+    it was what inspired me to make all the others. Usage:
+    <code>ubuntu-packages [package]</code></li>
+<li>Report Ubuntu Bug - Report a bug in a Ubuntu package on Launchpad.
+    (Although, chances are you should really be using Apport.) Usage:
+    <code>ubuntu-report-bug [package]</code></li>
+</ul>
+<p>You can grab them&nbsp;with:</p>
+<div class="highlight"><pre><span class="n">bzr</span> <span class="n">branch</span> <span class="n">lp</span><span class="o">:~</span><span class="n">andrewsomething</span><span class="o">/+</span><span class="n">junk</span><span class="o">/</span><span class="n">ubiquity</span><span class="o">-</span><span class="n">commands</span>
+</pre></div>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+    <div class="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_identifier = "2009/06/10/a-few-ubuntu-related-ubiquity-scripts/";
+            var disqus_url = "http://localhost:8000/2009/06/10/a-few-ubuntu-related-ubiquity-scripts/";
+            (function() {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = 'http://andrewsomething.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+    </div>
+<footer class="footer">
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a modified theme based on <a href="https://github.com/danclaudiupop/pure">Pure</a>.
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+
+
+        <title>GPG key transition</title>
+
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pure.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/style.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pygments.css">
+
+        <script src="http://localhost:8000/theme/js/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+<div class="sidebar pure-u">
+    <div class="cover-img" style="background-color: #272822">
+        <div class="cover-body">
+            <header class="header">
+                <hgroup>
+                    <a href="/"><img class="avatar" src="http://www.gravatar.com/avatar/c5187279a8111c09cb5960e47fdc03a8" height="72" width="72"></a>
+                    <h1 class="brand-main"><a href="/">asb@ubuntu:~$</a></h1>
+                    <p class="tagline">An underused blog...</p>
+                    <div class="pages-menu">
+                        <p>
+                            <span class="links pages"><a href="http://localhost:8000/">Home</a></span>
+                                <span class="separator">&#x2022; </span><span class="links pages active"><a href="http://localhost:8000/pages/about/">About</a></span>
+                        </p>
+                    </div>
+                    <p class="social-links">
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="http://localhost:8000/images/social/github.png" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="http://localhost:8000/images/social/launchpad.png" title="Launchpad"></a>
+                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="http://localhost:8000/images/social/google+.png" title="Google+"></a>
+                            <a target="_blank" class="social RssFeed" href="#"><img src="http://localhost:8000/images/social/rssfeed.png" title="RssFeed"></a>
+                    </p>
+                </hgroup>
+            </header>
+        </div>
+    </div>
+</div>    <div class="pure-u-3-4">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1><span class="caps">GPG</span> key&nbsp;transition</h1>
+                        <p class="post-meta">
+                            meta = {'category': <a href="http://localhost:8000/category/ubuntu/">Ubuntu</a>, 'date': Fri 24 September 2010}
+                            <div class="meta-tags">
+                                tags = [<a class="post-category" href="http://localhost:8000/tag/gpg/">gpg</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/me/">me</a><span class="comma">, </span>]
+                            </div>
+                        </p>
+                </header>
+            </section>
+            <p>I’ve recently set up a stronger (4096R) OpenPGP key, and will be
+transitioning away from my old (1024D) one. The old key will continue to
+be valid for some time, but i prefer all future correspondence to come
+to the new one. I would also like this new key to be re-integrated into
+the web of trust. Please find here <a href="http://people.ubuntu.com/~andrewsomething/key-transition-2010-09-24.txt">a statement signed with both
+keys</a>, certifying the&nbsp;transition.</p>
+<p>The old key&nbsp;was:</p>
+<div class="highlight"><pre><span class="n">pub</span> <span class="mi">1024</span><span class="n">D</span><span class="o">/</span><span class="mf">6286F</span><span class="n">B6D</span> <span class="mi">2007</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">03</span> <span class="n">Key</span> <span class="n">fingerprint</span> <span class="o">=</span> <span class="mi">62</span><span class="n">EE</span> <span class="n">D4F4</span> <span class="mi">6</span><span class="n">D46</span> <span class="n">BE9E</span> <span class="n">FF02</span> <span class="mi">220</span><span class="n">A</span> <span class="mf">2F</span><span class="mi">89</span> <span class="mf">3E7</span><span class="n">C</span> <span class="mi">6286</span> <span class="n">FB6D</span>
+</pre></div>
+
+
+<p>And the new key&nbsp;is:</p>
+<div class="highlight"><pre><span class="n">pub</span> <span class="mi">4096</span><span class="n">R</span><span class="o">/</span><span class="n">D53FDCB1</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">24</span> <span class="n">Key</span> <span class="n">fingerprint</span> <span class="o">=</span> <span class="mi">6</span><span class="n">EB2</span> <span class="mi">23</span><span class="n">D7</span> <span class="n">D71E</span> <span class="mi">67</span><span class="n">A5</span> <span class="mi">3</span><span class="n">C93</span> <span class="n">A7DA</span> <span class="mi">3</span><span class="n">B56</span> <span class="n">E2BB</span> <span class="n">D53F</span> <span class="n">DCB1</span>
+</pre></div>
+
+
+<p>To fetch my new key from a public key server, you can simply&nbsp;do:</p>
+<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">keyserver</span> <span class="n">pgp</span><span class="p">.</span><span class="n">mit</span><span class="p">.</span><span class="n">edu</span> <span class="o">--</span><span class="n">recv</span><span class="o">-</span><span class="n">key</span> <span class="n">D53FDCB1</span>
+</pre></div>
+
+
+<p>If you already know my old key, you can now verify that the new key is
+signed by the old&nbsp;one:</p>
+<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">check</span><span class="o">-</span><span class="n">sigs</span> <span class="n">D53FDCB1</span>
+</pre></div>
+
+
+<p>If you don&#8217;t already know my old key, or you just want to be double
+extra paranoid, you can check the fingerprint against the one&nbsp;above:</p>
+<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">fingerprint</span> <span class="n">D53FDCB1</span>
+</pre></div>
+
+
+<p>If you are satisfied that you&#8217;ve got the right key, and the UIDs match
+what you expect, I&#8217;d appreciate it if you would sign my&nbsp;key:</p>
+<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">sign</span><span class="o">-</span><span class="n">key</span> <span class="n">D53FDCB1</span>
+</pre></div>
+
+
+<p>Lastly, if you could upload these signatures, i would appreciate it. You
+can just upload the signatures to a public keyserver&nbsp;directly:</p>
+<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">keyserver</span> <span class="n">pgp</span><span class="p">.</span><span class="n">mit</span><span class="p">.</span><span class="n">edu</span> <span class="o">--</span><span class="n">send</span><span class="o">-</span><span class="n">key</span> <span class="n">D53FDCB1</span>
+</pre></div>
+
+
+<p>Thanks!</p>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+    <div class="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_identifier = "2010/09/24/gpg-key-transition/";
+            var disqus_url = "http://localhost:8000/2010/09/24/gpg-key-transition/";
+            (function() {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = 'http://andrewsomething.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+    </div>
+<footer class="footer">
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a modified theme based on <a href="https://github.com/danclaudiupop/pure">Pure</a>.
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>

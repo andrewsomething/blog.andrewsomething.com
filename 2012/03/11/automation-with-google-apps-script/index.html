@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+
+
+        <title>Automation with Google Apps Script</title>
+
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pure.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/style.css">
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/pygments.css">
+
+        <script src="http://localhost:8000/theme/js/jquery-1.10.2.js"></script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+<div class="sidebar pure-u">
+    <div class="cover-img" style="background-color: #272822">
+        <div class="cover-body">
+            <header class="header">
+                <hgroup>
+                    <a href="/"><img class="avatar" src="http://www.gravatar.com/avatar/c5187279a8111c09cb5960e47fdc03a8" height="72" width="72"></a>
+                    <h1 class="brand-main"><a href="/">asb@ubuntu:~$</a></h1>
+                    <p class="tagline">An underused blog...</p>
+                    <div class="pages-menu">
+                        <p>
+                            <span class="links pages"><a href="http://localhost:8000/">Home</a></span>
+                                <span class="separator">&#x2022; </span><span class="links pages active"><a href="http://localhost:8000/pages/about/">About</a></span>
+                        </p>
+                    </div>
+                    <p class="social-links">
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="http://localhost:8000/images/social/github.png" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="http://localhost:8000/images/social/launchpad.png" title="Launchpad"></a>
+                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="http://localhost:8000/images/social/google+.png" title="Google+"></a>
+                            <a target="_blank" class="social RssFeed" href="#"><img src="http://localhost:8000/images/social/rssfeed.png" title="RssFeed"></a>
+                    </p>
+                </hgroup>
+            </header>
+        </div>
+    </div>
+</div>    <div class="pure-u-3-4">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>Automation with Google Apps&nbsp;Script</h1>
+                        <p class="post-meta">
+                            meta = {'category': <a href="http://localhost:8000/category/ubuntu/">Ubuntu</a>, 'date': Sun 11 March 2012}
+                            <div class="meta-tags">
+                                tags = [<a class="post-category" href="http://localhost:8000/tag/calendar/">calendar</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/google/">google</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/snippets/">snippets</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/trello/">trello</a><span class="comma">, </span><a class="post-category" href="http://localhost:8000/tag/ubuntu/">Ubuntu</a><span class="comma">, </span>]
+                            </div>
+                        </p>
+                </header>
+            </section>
+            <p>I maintain a <a href="http://andrewsomething.wordpress.com/2011/08/19/ubuntu-release-calendar/">GCal of the Ubuntu release schedule</a>, and I just updated
+it to contain the proposed schedule for the Q-series. As you can
+imagine, adding all those events by hand can be annoying. Luckily you
+can use <a href="http://code.google.com/googleapps/appsscript/guide.html">Google App Script</a>, which is more or less JavaScript for the
+Google Cloud, to automate tasks like&nbsp;this.</p>
+<p>I could have probably come up with something to automate the entire
+process start to finish, scrapping the wiki every few days and pushing
+out updates. But this isn&#8217;t something that I have to do all that often,
+so I just wanted to write something quick and simple. Here&#8217;s what I
+ended up&nbsp;with:</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">EVENT_ADDED</span> <span class="o">=</span> <span class="s2">&quot;EVENT_ADDED&quot;</span><span class="p">;</span>
+
+<span class="kd">function</span> <span class="nx">sheet2cal</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">sheet</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActiveSheet</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">startRow</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  <span class="c1">// First row of data to process</span>
+  <span class="kd">var</span> <span class="nx">numRows</span> <span class="o">=</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getLastRow</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>   <span class="c1">// Number of rows to process</span>
+  <span class="kd">var</span> <span class="nx">dataRange</span> <span class="o">=</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="nx">startRow</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">numRows</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">dataRange</span><span class="p">.</span><span class="nx">getValues</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">cal</span> <span class="o">=</span> <span class="nx">CalendarApp</span><span class="p">.</span><span class="nx">openByName</span><span class="p">(</span><span class="s2">&quot;Ubuntu Release Schedule&quot;</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">data</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="o">++</span><span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">row</span> <span class="o">=</span> <span class="nx">data</span><span class="cp">[</span><span class="nx">i</span><span class="cp">]</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">tstart</span> <span class="o">=</span> <span class="nx">row</span><span class="cp">[</span><span class="mi">0</span><span class="cp">]</span><span class="p">;</span> 
+    <span class="kd">var</span> <span class="nx">title</span> <span class="o">=</span> <span class="nx">row</span><span class="cp">[</span><span class="mi">1</span><span class="cp">]</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">desc</span> <span class="o">=</span> <span class="nx">row</span><span class="cp">[</span><span class="mi">2</span><span class="cp">]</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">tstop</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">eventAdded</span> <span class="o">=</span> <span class="nx">row</span><span class="cp">[</span><span class="mi">4</span><span class="cp">]</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">eventAdded</span> <span class="o">!=</span> <span class="nx">EVENT_ADDED</span><span class="p">)</span> <span class="p">{</span>  <span class="c1">// Prevents sending duplicates</span>
+      <span class="nx">cal</span><span class="p">.</span><span class="nx">createAllDayEvent</span><span class="p">(</span><span class="nx">title</span><span class="p">,</span> <span class="nx">tstart</span><span class="p">,</span> <span class="p">{</span><span class="nx">description</span><span class="o">:</span><span class="nx">desc</span><span class="p">});</span>
+      <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="nx">startRow</span> <span class="o">+</span> <span class="nx">i</span><span class="p">,</span> <span class="mi">5</span><span class="p">).</span><span class="nx">setValue</span><span class="p">(</span><span class="nx">EVENT_ADDED</span><span class="p">);</span>
+      <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">flush</span><span class="p">();</span>
+    <span class="p">}</span>
+ <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This iterates through a spreadsheet where the first column is the
+event&#8217;s date, the second one is the title, and the third is the
+description. It also checks a fourth column to make sure the event
+hasn&#8217;t already been added, marking events added as it goes. It is
+closely based on the <a href="http://code.google.com/googleapps/appsscript/articles/sending_emails.html">example</a> of how to send emails from a&nbsp;spreadsheet.</p>
+<p>To add a script like this, go to <strong>Tools > Script editor&#8230;</strong> in your
+spreadsheet. This will open an <span class="caps">IDE</span> where you can write, run, and debug
+your script. If you want, you can add a custom menu on your
+spreadsheet&#8217;s tool bar to trigger the script with something&nbsp;like:</p>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">onOpen</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">ss</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActiveSpreadsheet</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">menuEntries</span> <span class="o">=</span> <span class="cp">[</span> <span class="p">{</span><span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;Add to calendar&quot;</span><span class="p">,</span> <span class="nx">functionName</span><span class="p">:</span> <span class="s2">&quot;sheet2cal&quot;</span><span class="p">}</span> <span class="cp">]</span><span class="p">;</span>
+  <span class="nx">ss</span><span class="p">.</span><span class="nx">addMenu</span><span class="p">(</span><span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="nx">menuEntries</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>You can also set scripts that will be <a href="http://code.google.com/googleapps/appsscript/guide_events.html#TimeTriggers">triggered at specific time
+intervals</a>, <a href="http://code.google.com/googleapps/appsscript/class_urlfetchapp.html">communicate with other services</a>, and do things like
+<a href="http://code.google.com/googleapps/appsscript/class_utilities.html#jsonParse">parse <span class="caps">JSON</span></a>. This opens up a lot of&nbsp;possibilities.</p>
+<p>For instance, I&#8217;m on a team that is using <a href="https://trello.com/">Trello</a> for internal
+organization and task tracking. <a href="http://kevinpelgrims.com/blog/2012/03/06/project-progress-tracking-with-google-docs-and-trello">Kevin Pelgrims has a great example</a>
+of integrating Trello and Google Docs to track project progress over
+time that I&#8217;ve started&nbsp;using.</p>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+    <div class="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_identifier = "2012/03/11/automation-with-google-apps-script/";
+            var disqus_url = "http://localhost:8000/2012/03/11/automation-with-google-apps-script/";
+            (function() {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = 'http://andrewsomething.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+    </div>
+<footer class="footer">
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a modified theme based on <a href="https://github.com/danclaudiupop/pure">Pure</a>.
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>
