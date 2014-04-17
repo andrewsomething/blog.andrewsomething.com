@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>asb@ubuntu:~$</title><link href="http://blog.andrewsomething.com/" rel="alternate"></link><link href="http://blog.andrewsomething.com/feeds/uncategorized.atom.xml" rel="self"></link><id>http://blog.andrewsomething.com/</id><updated>2010-01-14T04:43:00-05:00</updated><entry><title>Doctors Without Borders Haiti Emergency Response</title><link href="http://blog.andrewsomething.com/2010/01/14/doctors-without-borders-haiti-emergency-response/" rel="alternate"></link><updated>2010-01-14T04:43:00-05:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2010-01-14:2010/01/14/doctors-without-borders-haiti-emergency-response/</id><summary type="html">&lt;p&gt;Please excuse this break from your normally scheduled Ubuntu&amp;nbsp;programing&amp;#8230;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://donate.doctorswithoutborders.org/SSLPage.aspx?pid=197&amp;amp;hbc=1&amp;amp;source=ADQ1001E1D01"&gt;&lt;img alt="Support Doctors Without Borders in Haiti" src="http://www.doctorswithoutborders.org/images/donate/button-haiti-earthquake-480.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://www.doctorswithoutborders.org/aboutus/"&gt;Doctors Without Borders/Médecins Sans Frontières (&lt;span class="caps"&gt;MSF&lt;/span&gt;)&lt;/a&gt; is
+an independent international medical humanitarian organization. If you
+can spare even a few dollars to help in the emergency efforts under way
+in Haiti, I strongly recommend giving what you can to &lt;span class="caps"&gt;MSF&lt;/span&gt;.&lt;/p&gt;</summary><category term="NGO"></category></entry><entry><title>Bazaar Explorer 0.9.0 Now in PPA</title><link href="http://blog.andrewsomething.com/2009/11/04/bazaar-explorer-0-9-0-now-in-ppa/" rel="alternate"></link><updated>2009-11-04T04:26:00-05:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2009-11-04:2009/11/04/bazaar-explorer-0-9-0-now-in-ppa/</id><summary type="html">&lt;p&gt;&lt;a href="http://doc.bazaar-vcs.org/explorer/en/"&gt;&lt;img alt="bzr icon" src="http://doc.bazaar-vcs.org/explorer/en/_static/bazaar-explorer-64.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;One of the things that I&amp;#8217;ve always loved about bzr is that it is a
+powerful yet intuitive solution for version control. Now &lt;a href="http://doc.bazaar-vcs.org/explorer/en/"&gt;Bazaar
+Explorer&lt;/a&gt;, a wonderful cross-platform Qt-based &lt;span class="caps"&gt;GUI&lt;/span&gt; front-end to
+the Bazaar &lt;span class="caps"&gt;VCS&lt;/span&gt;, is making it even easier. Whether you&amp;#8217;re just getting
+started with &lt;span class="caps"&gt;DVCS&lt;/span&gt; or you just prefer a graphical environment, you should
+really check it out. (You can take a tour &lt;a href="http://doc.bazaar-vcs.org/explorer/en/visual-tour-gnome.html"&gt;here&lt;/a&gt;.)&lt;/p&gt;
+&lt;p&gt;[&lt;img alt="bzr-exploer screenshot" src="http://doc.bazaar-vcs.org/explorer/en/_static/home-page-screenshot.png" /&gt;]&lt;/p&gt;
+&lt;p&gt;There&amp;#8217;s been a Windows installer for Bazaar Explorer for awhile, and of
+course the source code is over there on &lt;a href="https://edge.launchpad.net/bzr-explorer"&gt;Launchpad&lt;/a&gt;. Even though
+Bazaar&amp;#8217;s plugin system makes it simple to install it on Linux from
+source, it just doesn&amp;#8217;t feel like it&amp;#8217;s keeping with the theme of making
+things easy. So I went and packaged it for&amp;nbsp;Ubuntu!&lt;/p&gt;
+&lt;p&gt;You can now grab it from the &lt;a href="https://edge.launchpad.net/~bzr-explorer-dev/+archive/ppa"&gt;Bazaar Explorer &lt;span class="caps"&gt;PPA&lt;/span&gt;&lt;/a&gt;. It should be
+entering Debian Unstable and Ubuntu Lucid in the near future, but we
+want to give you &lt;span class="caps"&gt;PPA&lt;/span&gt; users the chance to kick the tires first. Just add
+&lt;strong&gt;ppa:bzr-explorer-dev/ppa&lt;/strong&gt; to your system&amp;#8217;s Software&amp;nbsp;Sources.&lt;/p&gt;
+&lt;p&gt;There are packages for Karmic, Jaunty, Intrepid, and Hardy in the &lt;span class="caps"&gt;PPA&lt;/span&gt;,
+but please note that as bzr-explorer depends on bzr (&gt;= 1.14) and qbzr
+(&gt;= 0.11), users of Ubuntu releases before Karmic will also need to add
+the &lt;a href="https://edge.launchpad.net/~bzr/+archive/ppa"&gt;&lt;span class="caps"&gt;PPA&lt;/span&gt; for Bazaar Developers&lt;/a&gt;.  Also be aware that Hardy users might
+have some issues as parts of Explorer (e.g. the Preferences dialog)
+depend on Qt/PyQt 4.4.  (See:&lt;a href="https://bugs.launchpad.net/bzr-explorer/+bug/429549"&gt;Bug #429549&lt;/a&gt;). That said, every thing
+should be working smoothly in&amp;nbsp;Karmic.&lt;/p&gt;</summary><category term="bzr"></category><category term="explorer"></category><category term="ppa"></category></entry><entry><title>The Web (and Ubuntu) Can Make a Difference</title><link href="http://blog.andrewsomething.com/2009/08/21/the-web-and-ubuntu-can-make-a-difference/" rel="alternate"></link><updated>2009-08-21T19:27:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2009-08-21:2009/08/21/the-web-and-ubuntu-can-make-a-difference/</id><summary type="html">&lt;p&gt;The week of September 14-21, 2009 is &lt;a href="http://mozillaservice.org/"&gt;Mozilla Service Week&lt;/a&gt;, brought
+to you by the good folks behind Firefox and Thunderbird. They&amp;#8217;ve
+partnered with &lt;a href="http://www.idealist.org"&gt;Idealist.org&lt;/a&gt;, a non-profit jobs listing site, to link
+service-minded techies with non-profit organizations in need to their&amp;nbsp;help.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;We&amp;#8217;re looking for people who want to share, give, engage, create, and
+collaborate by offering their time and talent to local organizations
+and people who need their&amp;nbsp;help.&lt;/p&gt;
+&lt;p&gt;Mozilla believes everyone should know how to use the Internet, have
+easy access to it, and have a good experience when they&amp;#8217;re online. By
+utilizing our community&amp;#8217;s talents for writing, designing, programming,
+developing, and all-around technical know-how, we believe we can make
+the Web a better place for&amp;nbsp;everyone.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Spread the&amp;nbsp;word:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.spreadfirefox.com/affiliates/homepage?category=54&amp;amp;locale=41#getbuttons"&gt;Put a badge on your&amp;nbsp;blog.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://mozillaservice.org/img/flyers/en/Mozilla_Service_Week_Flyer_Letter_format.pdf"&gt;Post a flyer at your school or&amp;nbsp;workplace.&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The &lt;a href="https://wiki.ubuntu.com/NGO"&gt;Ubuntu &lt;span class="caps"&gt;NGO&lt;/span&gt; Team&lt;/a&gt; is also working on making Ubuntu a great
+platform to help non-profits. Check out &lt;a href="http://daniel.holba.ch/blog/?p=462"&gt;Daniel&amp;#8217;s recent post&lt;/a&gt;for some
+updates on our work, including efforts to &lt;a href="http://daniel.holba.ch/blog/?p=478"&gt;make life with Ubuntu easier
+for organizations working in places with out cheap and accessible&amp;nbsp;Internet.&lt;/a&gt;&lt;/p&gt;</summary><category term="community"></category><category term="firefox"></category><category term="mozilla"></category><category term="NGO"></category></entry></feed>

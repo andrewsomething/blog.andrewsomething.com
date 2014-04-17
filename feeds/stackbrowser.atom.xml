@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>asb@ubuntu:~$</title><link href="http://blog.andrewsomething.com/" rel="alternate"></link><link href="http://blog.andrewsomething.com/feeds/stackbrowser.atom.xml" rel="self"></link><id>http://blog.andrewsomething.com/</id><updated>2013-09-12T21:57:00-04:00</updated><entry><title>Introducing StackBrowser (and random thoughts on the new Ubuntu SDK)</title><link href="http://blog.andrewsomething.com/2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/" rel="alternate"></link><updated>2013-09-12T21:57:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2013-09-12:2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/</id><summary type="html">&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00000.png" /&gt;&lt;/p&gt;
+&lt;p&gt;If you follow me on Google+, you already know about this, but it seems
+like it&amp;#8217;s time to introduce this to a larger audience. Mostly an excuse
+to play with the new &lt;a href="http://developer.ubuntu.com/get-started/"&gt;Ubuntu &lt;span class="caps"&gt;SDK&lt;/span&gt;&lt;/a&gt;, I&amp;#8217;ve created StackBrowser. It
+allows you to explore the StackExchange network natively on Ubuntu
+Touch. It&amp;#8217;s written in pure &lt;span class="caps"&gt;QML&lt;/span&gt;/&amp;nbsp;JavaScript.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00001.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Currently you&amp;nbsp;can:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Browse and view recent&amp;nbsp;questions&lt;/li&gt;
+&lt;li&gt;Search questions by&amp;nbsp;tag&lt;/li&gt;
+&lt;li&gt;Browse, search, and view&amp;nbsp;users&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The roadmap for future releases includes a &amp;#8220;convergence&amp;#8221; layout (i.e
+tablet/desktop view) and accessing your global&amp;nbsp;inbox.&lt;/p&gt;
+&lt;p&gt;StackBrowser is available in the Ubuntu Touch Software Center. It can be
+tested on a 13.10 Ubuntu desktop system, or on earlier releases if you
+have the &lt;span class="caps"&gt;SDK&lt;/span&gt; installed, by grabbing its source from &lt;a href="https://launchpad.net/stackbrowser"&gt;Launchpad&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="n"&gt;bzr&lt;/span&gt; &lt;span class="n"&gt;branch&lt;/span&gt; &lt;span class="n"&gt;lp&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;stackbrowser&lt;/span&gt;
+    &lt;span class="n"&gt;cd&lt;/span&gt; &lt;span class="n"&gt;stackbrowser&lt;/span&gt;
+    &lt;span class="n"&gt;qmlscene&lt;/span&gt; &lt;span class="n"&gt;stackbrowser&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;qml&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can of course &lt;a href="https://bugs.launchpad.net/stackbrowser"&gt;report bugs there&lt;/a&gt; as&amp;nbsp;well.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00002.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;Some random thoughts on the &lt;span class="caps"&gt;SDK&lt;/span&gt; and Ubuntu Touch&amp;nbsp;apps&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;I&amp;#8217;ve enjoyed working with Qml for the most part. It&amp;#8217;s really quick
+    and painless to build a nice &lt;span class="caps"&gt;UI&lt;/span&gt;. StackBrowser, admittedly not a very
+    complex app, was built in a hour here and an hour there over the
+    course of just a few&amp;nbsp;days.&lt;/li&gt;
+&lt;li&gt;Though I think that I&amp;#8217;ve still got a lot of learning to do about the
+    &amp;#8220;Qml way,&amp;#8221; if such a thing exists. I guess maybe the term I&amp;#8217;m
+    looking for is  &amp;#8221;declarative&amp;nbsp;nature.&amp;#8221;&lt;/li&gt;
+&lt;li&gt;I&amp;#8217;d much rather write code in Python than JavaScript. &lt;a href="https://plus.google.com/102795169786046713434/posts/imZAq7pcdR8"&gt;Hopefully that will be&amp;nbsp;possible.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Relatedly, it feels like once an app becomes sufficiently ambitious,
+    you need to use&amp;nbsp;C++.&lt;/li&gt;
+&lt;li&gt;There are some very simple things you can&amp;#8217;t do in Qml/&lt;span class="caps"&gt;JS&lt;/span&gt; like write
+    a file to&amp;nbsp;disk.&lt;/li&gt;
+&lt;li&gt;There are places where there are strange holes in what you can do
+    with Qml. For instance, you can &lt;a href="http://qt-project.org/doc/qt-5.1/qtmultimedia/qml-qtmultimedia5-cameracapture.html"&gt;take pictures&lt;/a&gt;, &lt;a href="http://qt-project.org/doc/qt-5.1/qtmultimedia/qml-qtmultimedia5-camerarecorder.html"&gt;record video&lt;/a&gt;,
+    and &lt;a href="http://qt-project.org/doc/qt-5.1/qtmultimedia/qml-qtmultimedia5-mediaplayer.html"&gt;play media&lt;/a&gt; all using pure &lt;span class="caps"&gt;QML&lt;/span&gt;.&lt;a href="http://askubuntu.com/questions/338610/access-microphone-record-sound-from-qml"&gt;Yet, I can&amp;#8217;t find any way to record audio with just &lt;span class="caps"&gt;QML&lt;/span&gt;.&lt;/a&gt; Maybe I&amp;#8217;m missing&amp;nbsp;something?&lt;/li&gt;
+&lt;li&gt;I&amp;#8217;ve got an idea for a location aware app, but&lt;a href="http://askubuntu.com/questions/344831/how-to-access-geolocation-information-on-ubuntu-touch"&gt;I&amp;#8217;ve found the docs to be very&amp;nbsp;wanting.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;There&amp;#8217;s a lot of great work going on in &lt;a href="https://launchpad.net/ubuntu-phone-coreapps"&gt;the core apps project&lt;/a&gt;,
+    and it is very much a community&amp;nbsp;effort.&lt;/li&gt;
+&lt;li&gt;The focus right now seems to be on the velocity of the development,
+    but I&amp;#8217;d like to see the core apps project become a more cohesive
+    project (i.e. run more like say &lt;span class="caps"&gt;GNOME&lt;/span&gt; or &lt;span class="caps"&gt;KDE&lt;/span&gt;) and more integrated
+    into Ubuntu&amp;nbsp;governance.&lt;/li&gt;
+&lt;li&gt;I miss the larger collection of standard widgets available in&amp;nbsp;Gtk.&lt;/li&gt;
+&lt;li&gt;Relate to the two above points,&lt;a href="https://lists.launchpad.net/ubuntu-phone/msg03972.html"&gt;I&amp;#8217;ve noticed&lt;/a&gt; a couple place where
+    some core apps  have different implementations of the same thing
+    (e.g. location selection) with different visual styles and different&amp;nbsp;behaviors.&lt;/li&gt;
+&lt;li&gt;Maybe it&amp;#8217;s just because most of my contributions to free software
+    have been packaging things for Debian and Ubuntu, but the fact that
+    people are being encouraged to bundle dependencies in click packages
+    make me feel&amp;nbsp;dirty.&lt;/li&gt;
+&lt;li&gt;That said, just clicking a button in QtCreator and attaching the
+    result to a webform was extremely&amp;nbsp;simple.&lt;/li&gt;
+&lt;li&gt;My app was available to install just a few hours after submission.
+    Wonder how that will&amp;nbsp;scale?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Wow, that was a bit stream of conscience&amp;nbsp;like&amp;#8230;&lt;/p&gt;</summary><category term="app-development"></category><category term="askubuntu"></category><category term="qml"></category><category term="stackexchange"></category><category term="Ubuntu"></category><category term="ubuntu sdk"></category></entry></feed>
