@@ -21,7 +21,7 @@ EXTRA_PATH_METADATA = {
     'files/github/404.html': {'path': '404.html'},
     'files/github/README.md': {'path': 'README.md'},
     'files/robots.txt': {'path': 'robots.txt'},
-    'images/favicon.ico': {'path': 'favicon.ico'},
+#    'images/favicon.ico': {'path': 'favicon.ico'},
 }
 
 # Feed generation is usually not desired when developing
