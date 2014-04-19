@@ -14,6 +14,11 @@ On the non-FOSS front, I have a MS in Urban Affairs and on occasion considered
 referring to myself as an urbanist. I thought better of it, realizing how pretentious
 that sounds.
 
+
+<a href="http://stackexchange.com/users/294834">
+<img src="http://stackexchange.com/users/flair/294834.png" width="208" height="58" theme="clean" alt="profile for andrewsomething on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for andrewsomething on Stack Exchange, a network of free, community-driven Q&amp;A sites">
+</a>
+
   [Launchpad profile]: https://launchpad.net/~andrewsomething
   [Ubuntu Wiki page]: https://wiki.ubuntu.com/Andrewsomething
   [Debian QA page]: http://qa.debian.org/developer.php?login=asb
