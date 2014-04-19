@@ -4,6 +4,8 @@
     box-sizing: border-box;
 }
 
+@import url(http://fonts.googleapis.com/css?family=Noto+Sans:400,700|Josefin+Sans:400,600);
+
 a {
     text-decoration: none;
     color: #62AFD1;
@@ -12,7 +14,6 @@ a:hover,
 a:focus {
     text-decoration: underline;
 }
-
 
 .comments {
     padding: 50px 0 0;
@@ -156,6 +157,7 @@ h1.brand-main {
     /*display: inline;*/
     padding-bottom: 0;
     margin-bottom: 0;
+    font-family: 'Noto Sans', sans-serif;
 }
 
 .brand-main a {
@@ -166,7 +168,8 @@ h1.brand-main {
     color: #fff;
     border-bottom: 1px solid rgba(255,255,255,0.3);
     text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    font-family: "freight-sans-pro","Myriad Pro","Lucida Grande","Lucida Sans Unicode","Lucida Sans",Geneva,Verdana,sans-serif;
+    font-family: monospace;
+/*    font-family: "freight-sans-pro","Myriad Pro","Lucida Grande","Lucida Sans Unicode","Lucida Sans",Geneva,Verdana,sans-serif;*/
 }
 
 .tagline {
@@ -202,6 +205,7 @@ h1.brand-main {
     font-size: 110%;
     line-height: 1.45;
     color: #333332;
+    font-family: 'Josefin Sans', sans-serif;
 }
 
 .post {
@@ -212,6 +216,7 @@ h1.brand-main {
     font-size: 1.5em;
     color: #333332;
     letter-spacing: -1px;
+    font-family: 'Noto Sans', sans-serif;
 }
 .post-avatar {
     border-radius: 50px;
@@ -264,7 +269,6 @@ h1.brand-main {
     padding: 2em 0;
     font-size: 75%;
     color: #999;
-    font-family: monospace;
 }
 .footer .pure-menu a:hover,http://www.romtelecom.ro/internet/ipstatic.html
 .footer .pure-menu a:focus {
