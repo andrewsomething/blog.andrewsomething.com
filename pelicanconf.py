@@ -12,8 +12,8 @@ TIMEZONE = 'America/New_York'
 DEFAULT_LANG = u'en'
 
 PATH = 'content'
-PAGE_DIR = 'pages'
-ARTICLE_DIR = 'posts'
+PAGE_PATHS = ['pages']
+ARTICLE_PATHS = ['posts']
 STATIC_PATHS = ['images', 'files']
 EXTRA_PATH_METADATA = {
     'files/github/.nojekyll': {'path': '.nojekyll'},
@@ -65,10 +65,15 @@ AUTHOR_SAVE_AS = False
 
 # Theme.
 THEME = 'theme'
+THEME_STATIC_DIR = './theme'
 COVER_BG_COLOR = '#272822'
 TYPOGRIFY = True
 
 # Plugin.
-PLUGIN_PATH = 'plugins'
+PLUGIN_PATHS = ['plugins']
 PLUGINS = ['assets', 'optimize_images']
 PYGMENTS_RST_OPTIONS = {'cssclass': 'codehilite', 'linenos': 'table'}
+
+WEBASSETS = True
+
+ASSET_SOURCE_PATHS = ('static/',)

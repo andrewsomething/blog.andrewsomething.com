@@ -2,3 +2,4 @@ output/*
 *.py[cod]
 *.pid
 *~
+cache/
