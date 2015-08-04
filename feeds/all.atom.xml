@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>asb@ubuntu:~$</title><link href="http://blog.andrewsomething.com/" rel="alternate"></link><link href="http://blog.andrewsomething.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.andrewsomething.com/</id><updated>2014-04-25T18:45:00-04:00</updated><entry><title>DigitalOcean Indicator</title><link href="http://blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/" rel="alternate"></link><updated>2014-04-25T18:45:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2014-04-25:2014/04/25/digitalocean-indicator-release/</id><summary type="html">&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="http://i.imgur.com/ssV10vC.png" /&gt;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>asb@ubuntu:~$</title><link href="http://blog.andrewsomething.com/" rel="alternate"></link><link href="http://blog.andrewsomething.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.andrewsomething.com/</id><updated>2015-08-03T22:45:00-04:00</updated><entry><title>Package Management with Fabric</title><link href="http://blog.andrewsomething.com/2015/08/03/fabric-package-management/" rel="alternate"></link><updated>2015-08-03T22:45:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2015-08-03:2015/08/03/fabric-package-management/</id><summary type="html">&lt;p&gt;Recently, I&amp;#8217;ve been using &lt;a href="http://www.fabfile.org/"&gt;Fabric&lt;/a&gt; quite a bit. It is simple, Pythonic, and I&amp;#8217;ve grown to enjoy using it for automating basic systems administration tasks when a full-fledged configuration management system is more than you need for the&amp;nbsp;job.&lt;/p&gt;
+&lt;p&gt;For the most part, Fabric keeps to the basics, e.g. executing remote shell commands and uploading files. There are &lt;a href="https://github.com/fabric/fabric/issues/461"&gt;quite a few sets of tools&lt;/a&gt; that have popped up to extend it, but unfortunately there no is &amp;#8220;official&amp;#8221; contrib library. Many of these project serve very specific use cases like deploying a Django application and duplicate certain&amp;nbsp;functionality.&lt;/p&gt;
+&lt;p&gt;One thing that I&amp;#8217;ve become a bit frustrated with is copying around convenience functions into multiple Fabfiles. In particular, I end up cargo culting functions related to package management. So to finally rid myself of these, I&amp;#8217;ve created &lt;code&gt;fabric-package-management&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The source is on &lt;a href="https://github.com/andrewsomething/fabric-package-management"&gt;GitHub&lt;/a&gt;, and you can install it &lt;a href="https://pypi.python.org/pypi/fabric-package-management/0.1"&gt;from PyPI&lt;/a&gt;&amp;nbsp;with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo pip install fabric-package-management
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The aim is to provide basic primitives for package management with Fabric. Its focus is intentionally narrow. The 0.1 release only offers support for Apt, but I hope to see it grow support for more distributions. It could potentially add an abstraction layer for cross distro&amp;nbsp;support.&lt;/p&gt;
+&lt;p&gt;Here&amp;#8217;s a quick example of using it to update all your DigitalOcean&amp;nbsp;servers:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;digitalocean&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;task&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prompt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;settings&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric.operations&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;reboot&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric_package_management&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;
+
+&lt;span class="n"&gt;USER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;username&amp;#39;&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get_hosts&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;token&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;DO_TOKEN&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;digitalocean&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Manager&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;droplets&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_all_droplets&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;hosts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;droplets&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;hosts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ip_address&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;hosts&lt;/span&gt;
+
+&lt;span class="nd"&gt;@task&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;run&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;hosts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;get_hosts&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;hosts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;settings&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;host_string&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;USER&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+            &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;upgrade&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reboot_required&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+                &lt;span class="n"&gt;prompt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Reboot required. Initiate now?&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;Yes/No?&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="s"&gt;&amp;quot;response&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="n"&gt;default&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;No&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="n"&gt;validate&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;r&amp;#39;yes|Yes|YES|no|No|NO&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;lower&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                    &lt;span class="n"&gt;reboot&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Hope you find this&amp;nbsp;useful!&lt;/p&gt;</summary><category term="Fabric"></category><category term="DigitalOcean"></category><category term="GitHub"></category></entry><entry><title>DigitalOcean Indicator</title><link href="http://blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/" rel="alternate"></link><updated>2014-04-25T18:45:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2014-04-25:2014/04/25/digitalocean-indicator-release/</id><summary type="html">&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="http://i.imgur.com/ssV10vC.png" /&gt;&lt;/p&gt;
 &lt;p&gt;The other weekend I took some time to play around with the &lt;a href="https://developers.digitalocean.com/"&gt;DigitalOcean &lt;span class="caps"&gt;API&lt;/span&gt;,&lt;/a&gt;
 and this is what resulted. The &lt;a href="https://github.com/andrewsomething/digitalocean-indicator"&gt;DigitalOcean indicator&lt;/a&gt; allows you to monitor and
 manage your droplets directly from your panel. You&amp;nbsp;can:&lt;/p&gt;
@@ -9,16 +55,14 @@ manage your droplets directly from your panel. You&amp;nbsp;can:&lt;/p&gt;
 &lt;li&gt;Copy your droplet&amp;#8217;s &lt;span class="caps"&gt;IP&lt;/span&gt; address with a click for easy&amp;nbsp;access.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;You can install it on Ubuntu from my &lt;span class="caps"&gt;PPA&lt;/span&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;add&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;repository&lt;/span&gt; &lt;span class="n"&gt;ppa&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;andrewsomething&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;digitalocean&lt;/span&gt;
-&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;update&lt;/span&gt;
-&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;digitalocean&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;indicator&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo add-apt-repository ppa:andrewsomething/digitalocean
+sudo apt-get update
+sudo apt-get install digitalocean-indicator
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;It leverages &lt;a href="https://github.com/koalalorenzo/python-digitalocean"&gt;python-digitalocean&lt;/a&gt;, an &lt;span class="caps"&gt;API&lt;/span&gt; wrapper by &lt;a href="https://github.com/koalalorenzo"&gt;Lorenzo Setale&lt;/a&gt;. It&amp;#8217;s
-also package for Ubuntu in my &lt;span class="caps"&gt;PPA&lt;/span&gt;.&lt;/p&gt;
-&lt;p&gt;It&amp;#8217;s just a quick hack, but it begins to show you what&amp;#8217;s possible with the &lt;span class="caps"&gt;API&lt;/span&gt;. I
-hope someone else finds it&amp;nbsp;useful.&lt;/p&gt;</summary><category term="Ubuntu"></category><category term="DigitalOcean"></category><category term="GitHub"></category></entry><entry><title>Introducing StackBrowser (and random thoughts on the new Ubuntu SDK)</title><link href="http://blog.andrewsomething.com/2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/" rel="alternate"></link><updated>2013-09-12T21:57:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2013-09-12:2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/</id><summary type="html">&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00000.png" /&gt;&lt;/p&gt;
+also package for Ubuntu in my &lt;span class="caps"&gt;PPA&lt;/span&gt;.&lt;/p&gt;</summary><category term="Ubuntu"></category><category term="DigitalOcean"></category><category term="GitHub"></category></entry><entry><title>Introducing StackBrowser (and random thoughts on the new Ubuntu SDK)</title><link href="http://blog.andrewsomething.com/2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/" rel="alternate"></link><updated>2013-09-12T21:57:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2013-09-12:2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/</id><summary type="html">&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00000.png" /&gt;&lt;/p&gt;
 &lt;p&gt;If you follow me on Google+, you already know about this, but it seems
 like it&amp;#8217;s time to introduce this to a larger audience. Mostly an excuse
 to play with the new &lt;a href="http://developer.ubuntu.com/get-started/"&gt;Ubuntu &lt;span class="caps"&gt;SDK&lt;/span&gt;&lt;/a&gt;, I&amp;#8217;ve created StackBrowser. It
@@ -36,9 +80,9 @@ tablet/desktop view) and accessing your global&amp;nbsp;inbox.&lt;/p&gt;
 &lt;p&gt;StackBrowser is available in the Ubuntu Touch Software Center. It can be
 tested on a 13.10 Ubuntu desktop system, or on earlier releases if you
 have the &lt;span class="caps"&gt;SDK&lt;/span&gt; installed, by grabbing its source from &lt;a href="https://launchpad.net/stackbrowser"&gt;Launchpad&lt;/a&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="n"&gt;bzr&lt;/span&gt; &lt;span class="n"&gt;branch&lt;/span&gt; &lt;span class="n"&gt;lp&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;stackbrowser&lt;/span&gt;
-    &lt;span class="n"&gt;cd&lt;/span&gt; &lt;span class="n"&gt;stackbrowser&lt;/span&gt;
-    &lt;span class="n"&gt;qmlscene&lt;/span&gt; &lt;span class="n"&gt;stackbrowser&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;qml&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    bzr branch lp:stackbrowser
+    cd stackbrowser
+    qmlscene stackbrowser.qml
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -133,13 +177,13 @@ Launchpad&lt;/a&gt;including a renaming script in the&amp;nbsp;comments.)&lt;/p&
 &lt;p&gt;After dogfooding the app writing tools, I think I&amp;#8217;ll probably test
 the &lt;a href="http://developer.ubuntu.com/publish/"&gt;submission process&lt;/a&gt; for the Ubuntu Extras repository as well. For
 now though, you can install it for Ubuntu 12.10 from my &lt;span class="caps"&gt;PPA&lt;/span&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;add&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;repository&lt;/span&gt; &lt;span class="n"&gt;ppa&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;andrewsomething&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;typecatcher&lt;/span&gt;
-&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;update&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;typecatcher&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo add-apt-repository ppa:andrewsomething/typecatcher
+sudo apt-get update &amp;amp;&amp;amp; sudo apt-get install typecatcher
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;You can also grab the source from bzr on&amp;nbsp;Launchpad:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;bzr&lt;/span&gt; &lt;span class="n"&gt;branch&lt;/span&gt; &lt;span class="n"&gt;lp&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;typecatcher&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;bzr branch lp:typecatcher
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -196,7 +240,7 @@ your script. If you want, you can add a custom menu on your
 spreadsheet&amp;#8217;s tool bar to trigger the script with something&amp;nbsp;like:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;onOpen&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;ss&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;SpreadsheetApp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getActiveSpreadsheet&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
-  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;menuEntries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nb"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Add to calendar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;functionName&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;sheet2cal&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;menuEntries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Add to calendar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;functionName&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;sheet2cal&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="nx"&gt;ss&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;addMenu&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Scripts&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;menuEntries&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -323,41 +367,41 @@ to the new one. I would also like this new key to be re-integrated into
 the web of trust. Please find here &lt;a href="http://people.ubuntu.com/~andrewsomething/key-transition-2010-09-24.txt"&gt;a statement signed with both
 keys&lt;/a&gt;, certifying the&amp;nbsp;transition.&lt;/p&gt;
 &lt;p&gt;The old key&amp;nbsp;was:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;pub&lt;/span&gt; &lt;span class="mi"&gt;1024&lt;/span&gt;&lt;span class="n"&gt;D&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mf"&gt;6286F&lt;/span&gt;&lt;span class="n"&gt;B6D&lt;/span&gt; &lt;span class="mi"&gt;2007&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mo"&gt;03&lt;/span&gt; &lt;span class="n"&gt;Key&lt;/span&gt; &lt;span class="n"&gt;fingerprint&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;62&lt;/span&gt;&lt;span class="n"&gt;EE&lt;/span&gt; &lt;span class="n"&gt;D4F4&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="n"&gt;D46&lt;/span&gt; &lt;span class="n"&gt;BE9E&lt;/span&gt; &lt;span class="n"&gt;FF02&lt;/span&gt; &lt;span class="mi"&gt;220&lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt; &lt;span class="mf"&gt;2F&lt;/span&gt;&lt;span class="mi"&gt;89&lt;/span&gt; &lt;span class="mf"&gt;3E7&lt;/span&gt;&lt;span class="n"&gt;C&lt;/span&gt; &lt;span class="mi"&gt;6286&lt;/span&gt; &lt;span class="n"&gt;FB6D&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;pub 1024D/6286FB6D 2007-11-03 Key fingerprint = 62EE D4F4 6D46 BE9E FF02 220A 2F89 3E7C 6286 FB6D
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;And the new key&amp;nbsp;is:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;pub&lt;/span&gt; &lt;span class="mi"&gt;4096&lt;/span&gt;&lt;span class="n"&gt;R&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;D53FDCB1&lt;/span&gt; &lt;span class="mi"&gt;2010&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;09&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt; &lt;span class="n"&gt;Key&lt;/span&gt; &lt;span class="n"&gt;fingerprint&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="n"&gt;EB2&lt;/span&gt; &lt;span class="mi"&gt;23&lt;/span&gt;&lt;span class="n"&gt;D7&lt;/span&gt; &lt;span class="n"&gt;D71E&lt;/span&gt; &lt;span class="mi"&gt;67&lt;/span&gt;&lt;span class="n"&gt;A5&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="n"&gt;C93&lt;/span&gt; &lt;span class="n"&gt;A7DA&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="n"&gt;B56&lt;/span&gt; &lt;span class="n"&gt;E2BB&lt;/span&gt; &lt;span class="n"&gt;D53F&lt;/span&gt; &lt;span class="n"&gt;DCB1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;pub 4096R/D53FDCB1 2010-09-24 Key fingerprint = 6EB2 23D7 D71E 67A5 3C93 A7DA 3B56 E2BB D53F DCB1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;To fetch my new key from a public key server, you can simply&amp;nbsp;do:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;gpg&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;keyserver&lt;/span&gt; &lt;span class="n"&gt;pgp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mit&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;edu&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;recv&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;D53FDCB1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --keyserver pgp.mit.edu --recv-key D53FDCB1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;If you already know my old key, you can now verify that the new key is
 signed by the old&amp;nbsp;one:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;gpg&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;check&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;sigs&lt;/span&gt; &lt;span class="n"&gt;D53FDCB1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --check-sigs D53FDCB1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;If you don&amp;#8217;t already know my old key, or you just want to be double
 extra paranoid, you can check the fingerprint against the one&amp;nbsp;above:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;gpg&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;fingerprint&lt;/span&gt; &lt;span class="n"&gt;D53FDCB1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --fingerprint D53FDCB1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;If you are satisfied that you&amp;#8217;ve got the right key, and the UIDs match
 what you expect, I&amp;#8217;d appreciate it if you would sign my&amp;nbsp;key:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;gpg&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;sign&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;D53FDCB1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --sign-key D53FDCB1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Lastly, if you could upload these signatures, i would appreciate it. You
 can just upload the signatures to a public keyserver&amp;nbsp;directly:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;gpg&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;keyserver&lt;/span&gt; &lt;span class="n"&gt;pgp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mit&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;edu&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;send&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;D53FDCB1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --keyserver pgp.mit.edu --send-key D53FDCB1
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -565,7 +609,7 @@ Ubuntu related tasks in&amp;nbsp;Firefox:&lt;/p&gt;
     &lt;code&gt;ubuntu-report-bug [package]&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;You can grab them&amp;nbsp;with:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;bzr&lt;/span&gt; &lt;span class="n"&gt;branch&lt;/span&gt; &lt;span class="n"&gt;lp&lt;/span&gt;&lt;span class="o"&gt;:~&lt;/span&gt;&lt;span class="n"&gt;andrewsomething&lt;/span&gt;&lt;span class="o"&gt;/+&lt;/span&gt;&lt;span class="n"&gt;junk&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ubiquity&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;commands&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;bzr branch lp:~andrewsomething/+junk/ubiquity-commands
 &lt;/pre&gt;&lt;/div&gt;</summary><category term="firefox"></category><category term="Ubuntu"></category></entry><entry><title>PPAs and Daily Builds</title><link href="http://blog.andrewsomething.com/2009/06/10/ppas-and-daily-builds/" rel="alternate"></link><updated>2009-06-10T05:46:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2009-06-10:2009/06/10/ppas-and-daily-builds/</id><summary type="html">&lt;p&gt;So earlier today I was throwing together a script to publish bzr
 snapshots to a &lt;span class="caps"&gt;PPA&lt;/span&gt;. My use case was pretty simple. It&amp;#8217;s a debian native
 package. So the packaging and upstream are one and the same, so no need
@@ -583,8 +627,8 @@ basic idea is to make doing nightly builds of upstream projects almost
 trivial by using simple recipe files while bzr-builder does all the
 heavy lifting. A recipie file could look as simple as&amp;nbsp;this:&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;branch&lt;/span&gt; &lt;span class="n"&gt;lp&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;
-&lt;span class="n"&gt;merge&lt;/span&gt; &lt;span class="n"&gt;lp&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;debian&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;pkg&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;branch lp:foo
+merge lp:foo/debian-pkg
 &lt;/pre&gt;&lt;/div&gt;
 
 

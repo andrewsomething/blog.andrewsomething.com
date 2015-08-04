@@ -1,0 +1,781 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>asb@ubuntu:~$</title><link>http://blog.andrewsomething.com/</link><description></description><atom:link href="http://blog.andrewsomething.com/feeds/andrewsomething.rss.xml" rel="self"></atom:link><lastBuildDate>Mon, 03 Aug 2015 22:45:00 -0400</lastBuildDate><item><title>Package Management with Fabric</title><link>http://blog.andrewsomething.com/2015/08/03/fabric-package-management/</link><description>&lt;p&gt;Recently, I&amp;#8217;ve been using &lt;a href="http://www.fabfile.org/"&gt;Fabric&lt;/a&gt; quite a bit. It is simple, Pythonic, and I&amp;#8217;ve grown to enjoy using it for automating basic systems administration tasks when a full-fledged configuration management system is more than you need for the&amp;nbsp;job.&lt;/p&gt;
+&lt;p&gt;For the most part, Fabric keeps to the basics, e.g. executing remote shell commands and uploading files. There are &lt;a href="https://github.com/fabric/fabric/issues/461"&gt;quite a few sets of tools&lt;/a&gt; that have popped up to extend it, but unfortunately there no is &amp;#8220;official&amp;#8221; contrib library. Many of these project serve very specific use cases like deploying a Django application and duplicate certain&amp;nbsp;functionality.&lt;/p&gt;
+&lt;p&gt;One thing that I&amp;#8217;ve become a bit frustrated with is copying around convenience functions into multiple Fabfiles. In particular, I end up cargo culting functions related to package management. So to finally rid myself of these, I&amp;#8217;ve created &lt;code&gt;fabric-package-management&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The source is on &lt;a href="https://github.com/andrewsomething/fabric-package-management"&gt;GitHub&lt;/a&gt;, and you can install it &lt;a href="https://pypi.python.org/pypi/fabric-package-management/0.1"&gt;from PyPI&lt;/a&gt;&amp;nbsp;with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo pip install fabric-package-management
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The aim is to provide basic primitives for package management with Fabric. Its focus is intentionally narrow. The 0.1 release only offers support for Apt, but I hope to see it grow support for more distributions. It could potentially add an abstraction layer for cross distro&amp;nbsp;support.&lt;/p&gt;
+&lt;p&gt;Here&amp;#8217;s a quick example of using it to update all your DigitalOcean&amp;nbsp;servers:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;digitalocean&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;task&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prompt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;settings&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric.operations&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;reboot&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric_package_management&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;
+
+&lt;span class="n"&gt;USER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;username&amp;#39;&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get_hosts&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;token&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;DO_TOKEN&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;digitalocean&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Manager&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;token&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;droplets&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_all_droplets&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;hosts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;droplets&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;hosts&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ip_address&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;hosts&lt;/span&gt;
+
+&lt;span class="nd"&gt;@task&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;run&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;hosts&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;get_hosts&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;hosts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;settings&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;host_string&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;USER&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+            &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;update&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;upgrade&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reboot_required&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+                &lt;span class="n"&gt;prompt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Reboot required. Initiate now?&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;Yes/No?&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="s"&gt;&amp;quot;response&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="n"&gt;default&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;No&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                       &lt;span class="n"&gt;validate&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;r&amp;#39;yes|Yes|YES|no|No|NO&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;lower&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;yes&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                    &lt;span class="n"&gt;reboot&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Hope you find this&amp;nbsp;useful!&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Mon, 03 Aug 2015 22:45:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2015-08-03:2015/08/03/fabric-package-management/</guid><category>Fabric</category><category>DigitalOcean</category><category>GitHub</category></item><item><title>DigitalOcean Indicator</title><link>http://blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/</link><description>&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="http://i.imgur.com/ssV10vC.png" /&gt;&lt;/p&gt;
+&lt;p&gt;The other weekend I took some time to play around with the &lt;a href="https://developers.digitalocean.com/"&gt;DigitalOcean &lt;span class="caps"&gt;API&lt;/span&gt;,&lt;/a&gt;
+and this is what resulted. The &lt;a href="https://github.com/andrewsomething/digitalocean-indicator"&gt;DigitalOcean indicator&lt;/a&gt; allows you to monitor and
+manage your droplets directly from your panel. You&amp;nbsp;can:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Quickly see which droplets are&amp;nbsp;active.&lt;/li&gt;
+&lt;li&gt;Reboot, power on, and/or power down you&amp;nbsp;droplets.&lt;/li&gt;
+&lt;li&gt;Copy your droplet&amp;#8217;s &lt;span class="caps"&gt;IP&lt;/span&gt; address with a click for easy&amp;nbsp;access.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You can install it on Ubuntu from my &lt;span class="caps"&gt;PPA&lt;/span&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo add-apt-repository ppa:andrewsomething/digitalocean
+sudo apt-get update
+sudo apt-get install digitalocean-indicator
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It leverages &lt;a href="https://github.com/koalalorenzo/python-digitalocean"&gt;python-digitalocean&lt;/a&gt;, an &lt;span class="caps"&gt;API&lt;/span&gt; wrapper by &lt;a href="https://github.com/koalalorenzo"&gt;Lorenzo Setale&lt;/a&gt;. It&amp;#8217;s
+also package for Ubuntu in my &lt;span class="caps"&gt;PPA&lt;/span&gt;.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Fri, 25 Apr 2014 18:45:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2014-04-25:2014/04/25/digitalocean-indicator-release/</guid><category>Ubuntu</category><category>DigitalOcean</category><category>GitHub</category></item><item><title>Introducing StackBrowser (and random thoughts on the new Ubuntu SDK)</title><link>http://blog.andrewsomething.com/2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/</link><description>&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00000.png" /&gt;&lt;/p&gt;
+&lt;p&gt;If you follow me on Google+, you already know about this, but it seems
+like it&amp;#8217;s time to introduce this to a larger audience. Mostly an excuse
+to play with the new &lt;a href="http://developer.ubuntu.com/get-started/"&gt;Ubuntu &lt;span class="caps"&gt;SDK&lt;/span&gt;&lt;/a&gt;, I&amp;#8217;ve created StackBrowser. It
+allows you to explore the StackExchange network natively on Ubuntu
+Touch. It&amp;#8217;s written in pure &lt;span class="caps"&gt;QML&lt;/span&gt;/&amp;nbsp;JavaScript.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00001.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Currently you&amp;nbsp;can:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Browse and view recent&amp;nbsp;questions&lt;/li&gt;
+&lt;li&gt;Search questions by&amp;nbsp;tag&lt;/li&gt;
+&lt;li&gt;Browse, search, and view&amp;nbsp;users&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The roadmap for future releases includes a &amp;#8220;convergence&amp;#8221; layout (i.e
+tablet/desktop view) and accessing your global&amp;nbsp;inbox.&lt;/p&gt;
+&lt;p&gt;StackBrowser is available in the Ubuntu Touch Software Center. It can be
+tested on a 13.10 Ubuntu desktop system, or on earlier releases if you
+have the &lt;span class="caps"&gt;SDK&lt;/span&gt; installed, by grabbing its source from &lt;a href="https://launchpad.net/stackbrowser"&gt;Launchpad&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    bzr branch lp:stackbrowser
+    cd stackbrowser
+    qmlscene stackbrowser.qml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can of course &lt;a href="https://bugs.launchpad.net/stackbrowser"&gt;report bugs there&lt;/a&gt; as&amp;nbsp;well.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2013/09/kazam_screenshot_00002.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;Some random thoughts on the &lt;span class="caps"&gt;SDK&lt;/span&gt; and Ubuntu Touch&amp;nbsp;apps&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;I&amp;#8217;ve enjoyed working with Qml for the most part. It&amp;#8217;s really quick
+    and painless to build a nice &lt;span class="caps"&gt;UI&lt;/span&gt;. StackBrowser, admittedly not a very
+    complex app, was built in a hour here and an hour there over the
+    course of just a few&amp;nbsp;days.&lt;/li&gt;
+&lt;li&gt;Though I think that I&amp;#8217;ve still got a lot of learning to do about the
+    &amp;#8220;Qml way,&amp;#8221; if such a thing exists. I guess maybe the term I&amp;#8217;m
+    looking for is  &amp;#8221;declarative&amp;nbsp;nature.&amp;#8221;&lt;/li&gt;
+&lt;li&gt;I&amp;#8217;d much rather write code in Python than JavaScript. &lt;a href="https://plus.google.com/102795169786046713434/posts/imZAq7pcdR8"&gt;Hopefully that will be&amp;nbsp;possible.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Relatedly, it feels like once an app becomes sufficiently ambitious,
+    you need to use&amp;nbsp;C++.&lt;/li&gt;
+&lt;li&gt;There are some very simple things you can&amp;#8217;t do in Qml/&lt;span class="caps"&gt;JS&lt;/span&gt; like write
+    a file to&amp;nbsp;disk.&lt;/li&gt;
+&lt;li&gt;There are places where there are strange holes in what you can do
+    with Qml. For instance, you can &lt;a href="http://qt-project.org/doc/qt-5.1/qtmultimedia/qml-qtmultimedia5-cameracapture.html"&gt;take pictures&lt;/a&gt;, &lt;a href="http://qt-project.org/doc/qt-5.1/qtmultimedia/qml-qtmultimedia5-camerarecorder.html"&gt;record video&lt;/a&gt;,
+    and &lt;a href="http://qt-project.org/doc/qt-5.1/qtmultimedia/qml-qtmultimedia5-mediaplayer.html"&gt;play media&lt;/a&gt; all using pure &lt;span class="caps"&gt;QML&lt;/span&gt;.&lt;a href="http://askubuntu.com/questions/338610/access-microphone-record-sound-from-qml"&gt;Yet, I can&amp;#8217;t find any way to record audio with just &lt;span class="caps"&gt;QML&lt;/span&gt;.&lt;/a&gt; Maybe I&amp;#8217;m missing&amp;nbsp;something?&lt;/li&gt;
+&lt;li&gt;I&amp;#8217;ve got an idea for a location aware app, but&lt;a href="http://askubuntu.com/questions/344831/how-to-access-geolocation-information-on-ubuntu-touch"&gt;I&amp;#8217;ve found the docs to be very&amp;nbsp;wanting.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;There&amp;#8217;s a lot of great work going on in &lt;a href="https://launchpad.net/ubuntu-phone-coreapps"&gt;the core apps project&lt;/a&gt;,
+    and it is very much a community&amp;nbsp;effort.&lt;/li&gt;
+&lt;li&gt;The focus right now seems to be on the velocity of the development,
+    but I&amp;#8217;d like to see the core apps project become a more cohesive
+    project (i.e. run more like say &lt;span class="caps"&gt;GNOME&lt;/span&gt; or &lt;span class="caps"&gt;KDE&lt;/span&gt;) and more integrated
+    into Ubuntu&amp;nbsp;governance.&lt;/li&gt;
+&lt;li&gt;I miss the larger collection of standard widgets available in&amp;nbsp;Gtk.&lt;/li&gt;
+&lt;li&gt;Relate to the two above points,&lt;a href="https://lists.launchpad.net/ubuntu-phone/msg03972.html"&gt;I&amp;#8217;ve noticed&lt;/a&gt; a couple place where
+    some core apps  have different implementations of the same thing
+    (e.g. location selection) with different visual styles and different&amp;nbsp;behaviors.&lt;/li&gt;
+&lt;li&gt;Maybe it&amp;#8217;s just because most of my contributions to free software
+    have been packaging things for Debian and Ubuntu, but the fact that
+    people are being encouraged to bundle dependencies in click packages
+    make me feel&amp;nbsp;dirty.&lt;/li&gt;
+&lt;li&gt;That said, just clicking a button in QtCreator and attaching the
+    result to a webform was extremely&amp;nbsp;simple.&lt;/li&gt;
+&lt;li&gt;My app was available to install just a few hours after submission.
+    Wonder how that will&amp;nbsp;scale?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Wow, that was a bit stream of conscience&amp;nbsp;like&amp;#8230;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Thu, 12 Sep 2013 21:57:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2013-09-12:2013/09/12/introducing-stackbrowser-and-random-thoughts-on-the-new-ubuntu-sdk/</guid><category>app-development</category><category>askubuntu</category><category>qml</category><category>stackexchange</category><category>Ubuntu</category><category>ubuntu sdk</category></item><item><title>Introducing Bug 2 Trello</title><link>http://blog.andrewsomething.com/2013/06/13/introducing-bug-2-trello/</link><description>&lt;p&gt;For some time now, I&amp;#8217;ve been using &lt;a href="https://trello.com/"&gt;Trello&lt;/a&gt; to organize my free
+software contributions. My main use is to give me a cross-project view
+of what I&amp;#8217;m working on. As most of my contributions stem from packaging
+software for Debian and Ubuntu, I end up working on and following bugs
+across many different hosting projects (e.g. Launchpad, Debian&amp;#8217;s &lt;span class="caps"&gt;BTS&lt;/span&gt;,
+GitHub). Each does a decent job (some better than others) of displaying
+and prioritizing issues within a certain project. Though a bug that is
+critical in a project that I&amp;#8217;m only tangentially interested in might be
+a lower priority from me personally than a wishlist issue in a different
+project. So Trello has been extremely helpful in giving me a global view
+of how I should be spending my limited time across projects. Though
+putting information from all of these different places into Trello can
+be&amp;nbsp;tedious&amp;#8230;&lt;/p&gt;
+&lt;p&gt;So that&amp;#8217;s why I created &lt;a href="https://chrome.google.com/webstore/detail/bug-2-trello/aomnoofmdnaccffobkddehcmdihggcke"&gt;Bug 2 Trello,&lt;/a&gt; a Chrome extension to add
+bugs/issues to a Trello&amp;nbsp;board.&lt;/p&gt;
+&lt;iframe width="560" height="315" src="//www.youtube.com/embed/MMgeP0DH9c4" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;
+
+&lt;p&gt;It currently supports Launchpad, GitHub, SourceForge, Google Code,
+BitBucket, and Debian&amp;#8217;s &lt;span class="caps"&gt;BTS&lt;/span&gt;. There is also support for some Bugzilla
+instances. This support currently requires that the &lt;span class="caps"&gt;JSON&lt;/span&gt;-&lt;span class="caps"&gt;RPC&lt;/span&gt; interface
+is available. It is known to work with with Wikimedia, Mozilla, &lt;span class="caps"&gt;KDE&lt;/span&gt;,
+Apache, and Redhat. It is known &lt;em&gt;not&lt;/em&gt; to work with &lt;span class="caps"&gt;GNOME&lt;/span&gt;, Kernel.org,
+and&amp;nbsp;Novell.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Install it from the Chrome
+    Store: &lt;a href="https://chrome.google.com/webstore/detail/bug2trello/aomnoofmdnaccffobkddehcmdihggcke"&gt;https://chrome.google.com/webstore/detail/bug2trello/aomnoofmdnaccffobkddehcmdihggcke&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Report bugs: &lt;a href="https://github.com/andrewsomething/bug2trello/issues"&gt;https://github.com/andrewsomething/bug2trello/issues&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Grab the
+    code: &lt;code&gt;git clone git://github.com/andrewsomething/bug2trello.git&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Bug 2 Trello is licensed under the &lt;span class="caps"&gt;MIT&lt;/span&gt;&amp;nbsp;License.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Thu, 13 Jun 2013 19:35:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2013-06-13:2013/06/13/introducing-bug-2-trello/</guid><category>app-development</category><category>bugs</category><category>chrome</category><category>trello</category></item><item><title>Introducing TypeCatcher</title><link>http://blog.andrewsomething.com/2012/11/11/introducing-typecatcher/</link><description>&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2012/11/typecatcher_0012.png" /&gt;&lt;/p&gt;
+&lt;p&gt;After helping to review applications for the Ubuntu App Showdown, I had
+the urge to take another look at the state of quickly, Ubuntu&amp;#8217;s quick
+starter for app development. So here we have &lt;a href="https://launchpad.net/typecatcher"&gt;TypeCatcher&lt;/a&gt;. It allows
+you to search, browse, and download Google webfonts for off-line use.
+You can preview fonts with adjustable size and&amp;nbsp;text.&lt;/p&gt;
+&lt;p&gt;It was mostly written in one Sunday afternoon a few months back. Though
+I put it aside for awhile, mostly out of my inability to come up with a
+name for it. The delay did allow me to flesh it out a bit. For the most
+part I was quite happy with quickly. The templates really do get you up
+and running fast. Though as I&amp;#8217;m extremely comfortable with both bzr and
+Debian packaging, I didn&amp;#8217;t really employ its ability to hide those parts
+from&amp;nbsp;users.&lt;/p&gt;
+&lt;p&gt;(As a side note, on place where quickly fell a bit short for me was
+renaming the project. Sometimes you just want to start hacking and then
+think about naming later, but quickly uses your project name in file
+names and classes all over the place. It would be nice to bake project
+renaming into its &lt;span class="caps"&gt;UI&lt;/span&gt;. There is already a &lt;a href="https://bugs.launchpad.net/quickly/+bug/667492"&gt;bug report about this on
+Launchpad&lt;/a&gt;including a renaming script in the&amp;nbsp;comments.)&lt;/p&gt;
+&lt;p&gt;After dogfooding the app writing tools, I think I&amp;#8217;ll probably test
+the &lt;a href="http://developer.ubuntu.com/publish/"&gt;submission process&lt;/a&gt; for the Ubuntu Extras repository as well. For
+now though, you can install it for Ubuntu 12.10 from my &lt;span class="caps"&gt;PPA&lt;/span&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;sudo add-apt-repository ppa:andrewsomething/typecatcher
+sudo apt-get update &amp;amp;&amp;amp; sudo apt-get install typecatcher
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can also grab the source from bzr on&amp;nbsp;Launchpad:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;bzr branch lp:typecatcher
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;a href="https://bugs.launchpad.net/typecatcher"&gt;Bugs and feature requests&lt;/a&gt; welcome there as&amp;nbsp;well.&lt;/p&gt;
+&lt;p&gt;And of course, who doesn&amp;#8217;t love&amp;nbsp;screenshots:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="" src="http://blog.andrewsomething.com/images/2012/11/selection_005.png" /&gt;
+  &lt;img alt="" src="http://blog.andrewsomething.com/images/2012/11/typecatcher_003.png" /&gt;
+  &lt;img alt="" src="http://blog.andrewsomething.com/images/2012/11/typecatcher_004.png" /&gt;
+  &lt;img alt="" src="http://blog.andrewsomething.com/images/2012/11/typecatcher_006.png" /&gt;
+  &lt;img alt="" src="http://blog.andrewsomething.com/images/2012/11/typecatcher_002.png" /&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Sun, 11 Nov 2012 23:00:00 -0500</pubDate><guid>tag:blog.andrewsomething.com,2012-11-11:2012/11/11/introducing-typecatcher/</guid><category>app-development</category><category>quickly</category><category>typecatcher</category></item><item><title>Automation with Google Apps Script</title><link>http://blog.andrewsomething.com/2012/03/11/automation-with-google-apps-script/</link><description>&lt;p&gt;I maintain a &lt;a href="http://andrewsomething.wordpress.com/2011/08/19/ubuntu-release-calendar/"&gt;GCal of the Ubuntu release schedule&lt;/a&gt;, and I just updated
+it to contain the proposed schedule for the Q-series. As you can
+imagine, adding all those events by hand can be annoying. Luckily you
+can use &lt;a href="http://code.google.com/googleapps/appsscript/guide.html"&gt;Google App Script&lt;/a&gt;, which is more or less JavaScript for the
+Google Cloud, to automate tasks like&amp;nbsp;this.&lt;/p&gt;
+&lt;p&gt;I could have probably come up with something to automate the entire
+process start to finish, scrapping the wiki every few days and pushing
+out updates. But this isn&amp;#8217;t something that I have to do all that often,
+so I just wanted to write something quick and simple. Here&amp;#8217;s what I
+ended up&amp;nbsp;with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;EVENT_ADDED&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;EVENT_ADDED&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;sheet2cal&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;sheet&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;SpreadsheetApp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getActiveSheet&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;startRow&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="c1"&gt;// First row of data to process&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;numRows&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;sheet&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getLastRow&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;   &lt;span class="c1"&gt;// Number of rows to process&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;dataRange&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;sheet&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getRange&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;startRow&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;numRows&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;dataRange&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getValues&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;cal&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;CalendarApp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;openByName&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Ubuntu Release Schedule&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;length&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;row&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;tstart&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;row&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; 
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;title&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;row&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;desc&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;row&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;tstop&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;eventAdded&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;row&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;eventAdded&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nx"&gt;EVENT_ADDED&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;  &lt;span class="c1"&gt;// Prevents sending duplicates&lt;/span&gt;
+      &lt;span class="nx"&gt;cal&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;createAllDayEvent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;tstart&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;description&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;desc&lt;/span&gt;&lt;span class="p"&gt;});&lt;/span&gt;
+      &lt;span class="nx"&gt;sheet&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getRange&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;startRow&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;setValue&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;EVENT_ADDED&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+      &lt;span class="nx"&gt;SpreadsheetApp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;flush&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+ &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This iterates through a spreadsheet where the first column is the
+event&amp;#8217;s date, the second one is the title, and the third is the
+description. It also checks a fourth column to make sure the event
+hasn&amp;#8217;t already been added, marking events added as it goes. It is
+closely based on the &lt;a href="http://code.google.com/googleapps/appsscript/articles/sending_emails.html"&gt;example&lt;/a&gt; of how to send emails from a&amp;nbsp;spreadsheet.&lt;/p&gt;
+&lt;p&gt;To add a script like this, go to &lt;strong&gt;Tools &gt; Script editor&amp;#8230;&lt;/strong&gt; in your
+spreadsheet. This will open an &lt;span class="caps"&gt;IDE&lt;/span&gt; where you can write, run, and debug
+your script. If you want, you can add a custom menu on your
+spreadsheet&amp;#8217;s tool bar to trigger the script with something&amp;nbsp;like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;onOpen&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;ss&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;SpreadsheetApp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getActiveSpreadsheet&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="kd"&gt;var&lt;/span&gt; &lt;span class="nx"&gt;menuEntries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Add to calendar&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;functionName&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;sheet2cal&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nx"&gt;ss&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;addMenu&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Scripts&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;menuEntries&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can also set scripts that will be &lt;a href="http://code.google.com/googleapps/appsscript/guide_events.html#TimeTriggers"&gt;triggered at specific time
+intervals&lt;/a&gt;, &lt;a href="http://code.google.com/googleapps/appsscript/class_urlfetchapp.html"&gt;communicate with other services&lt;/a&gt;, and do things like
+&lt;a href="http://code.google.com/googleapps/appsscript/class_utilities.html#jsonParse"&gt;parse &lt;span class="caps"&gt;JSON&lt;/span&gt;&lt;/a&gt;. This opens up a lot of&amp;nbsp;possibilities.&lt;/p&gt;
+&lt;p&gt;For instance, I&amp;#8217;m on a team that is using &lt;a href="https://trello.com/"&gt;Trello&lt;/a&gt; for internal
+organization and task tracking. &lt;a href="http://kevinpelgrims.com/blog/2012/03/06/project-progress-tracking-with-google-docs-and-trello"&gt;Kevin Pelgrims has a great example&lt;/a&gt;
+of integrating Trello and Google Docs to track project progress over
+time that I&amp;#8217;ve started&amp;nbsp;using.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Sun, 11 Mar 2012 19:56:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2012-03-11:2012/03/11/automation-with-google-apps-script/</guid><category>calendar</category><category>google</category><category>snippets</category><category>trello</category><category>Ubuntu</category></item><item><title>“Formalities are boring.”</title><link>http://blog.andrewsomething.com/2011/11/09/formalities-are-boring/</link><description>&lt;p&gt;&lt;img alt="Old Faithful" src="http://farm3.static.flickr.com/2785/4264882098_d5bf67f2dc_m.jpg" /&gt;&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;ve been following &lt;a href="https://lists.ubuntu.com/archives/ubuntu-desktop/2011-November/003393.html"&gt;the discussion&lt;/a&gt; around the potential switch from
+Banshee back to Rhythmbox for Precise, and I really don&amp;#8217;t have all that
+much to add. Though I did come across &lt;a href="http://www.robpvn.net/2011/11/08/ubuntu-either-doesnt-know-how-important-theyve-become-or-they-dont-care/"&gt;an interesting post&lt;/a&gt; from an
+upstream Tomboy developer that deserves some wider attention. He argues
+that &amp;#8220;upstreams would be more than happy to do a lot of stuff for Ubuntu
+if only Ubuntu actually let them know what they wanted in some sort of
+predictable&amp;nbsp;fashion.&amp;#8221;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Ubuntu either doesn’t know how important they’ve become, or they don’t
+care. Developers in upstream apps know that getting exposure in Ubuntu
+means an incredible influx of new users, which in turn leads to new
+bug reporters, which finally means new contributors. It’s well known
+that each of these groups is an order of magnitude smaller than the
+last, so making sure the user group is as big as possible is vital for
+an application. And because upstream knows this, they are willing to
+bend over backwards to accommodate Ubuntu’s&amp;nbsp;wishes.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;He also tells a story about Tomboy nearly being dropped last cycle due
+to depending on a number of libraries that the desktop team wanted to
+drop form the &lt;span class="caps"&gt;CD&lt;/span&gt; images. He goes on to suggest that formalizing the
+procedure around these sorts of things would reduce a lot of confusion
+and let upstreams know where they&amp;nbsp;stand.&lt;/p&gt;
+&lt;p&gt;This seems entirely reasonable to me. The Banshee issue aside, it would
+be great if there was a formal announcement at some set point in the
+cycle where the targeted development goals for the platform are laid out
+in one place. If you follow closely this information is already
+announced, but it is in a trickle of different messages to the devel and
+desktop lists. The  idea would be to compile this information into one
+clear widely-publicized announcement. It would be early enough in the
+cycle that upstreams, derivatives, and other stake holders would have
+time to react. It would also make clear that any discussion before that
+point is just that, discussion not  decisions. The existing &lt;a href="https://wiki.ubuntu.com/FeatureDefinitionFreeze"&gt;Feature
+Definition Freeze&lt;/a&gt; would probably make for a nice&amp;nbsp;fit.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 09 Nov 2011 06:33:00 -0500</pubDate><guid>tag:blog.andrewsomething.com,2011-11-09:2011/11/09/formalities-are-boring/</guid><category>release goals</category><category>Ubuntu</category><category>upstreams</category></item><item><title>Fun with graphs</title><link>http://blog.andrewsomething.com/2011/10/09/fun-with-graphs/</link><description>&lt;p&gt;For awhile now, I&amp;#8217;ve felt like the ubuntu-motu mailing list has been a
+shadow of its former self. It turns out that empirical data backs up
+this feeling. I produced a histogram of mailinglist volume over&amp;nbsp;time:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="motu" src="http://blog.andrewsomething.com/images/2011/10/motu.png" /&gt;&lt;/p&gt;
+&lt;p&gt;I also figured I should take a look at&amp;nbsp;ubuntu-devel:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="devel" src="http://blog.andrewsomething.com/images/2011/10/devel.png" /&gt;&lt;/p&gt;
+&lt;p&gt;That graph raises the question what happened at the end of 2006. Of
+course, that was when ubuntu-devel-discuss was&amp;nbsp;started:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="devel-discuss" src="http://blog.andrewsomething.com/images/2011/10/devel-discuss.png" /&gt;&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m not sure what this all means, but I do find it interesting in the
+context of some recent discussion on the direction of the Ubuntu&amp;nbsp;community.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;You can find the python code I used in a &lt;a href="https://gist.github.com/1273952"&gt;GitHub gist&lt;/a&gt;. It takes an
+mbox file and produces a histogram using &lt;a href="http://matplotlib.sourceforge.net/"&gt;matplotlib&lt;/a&gt;. It is
+shamelessly based off of &lt;a href="https://gist.github.com/913543"&gt;code by Takafumi Arakaki&lt;/a&gt; that was
+designed to plot a histogram of the commit frequency of a Mercurial or
+Git repository by reading newline separated unix time via &lt;span class="caps"&gt;STDIN&lt;/span&gt;. I just
+rewrote the &lt;code&gt;read_dates()&lt;/code&gt; function. If someone has a simpler way of
+doing the date conversion, I&amp;#8217;d love to see it. What I did was a&amp;nbsp;bit convoluted.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Sun, 09 Oct 2011 20:01:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2011-10-09:2011/10/09/fun-with-graphs/</guid><category>community</category><category>mailinglists</category><category>stats</category><category>Ubuntu</category></item><item><title>Ubuntu Developer Membership Board Election</title><link>http://blog.andrewsomething.com/2011/08/23/ubuntu-developer-membership-board-election/</link><description>&lt;p&gt;&lt;img alt="Voting Machine" src="http://farm3.static.flickr.com/2727/4345526574_5450a74a3f.jpg" /&gt;&lt;/p&gt;
+&lt;p&gt;An election for a recently opened spot on the &lt;a href="https://wiki.ubuntu.com/DeveloperMembershipBoard"&gt;&lt;span class="caps"&gt;DMB&lt;/span&gt;&lt;/a&gt; has just begun.
+While all the names of those nominated are familiar to me, I still need
+some more information to make a decision. All of the candidates
+are eminently qualified. Unfortunately, the call for votes didn&amp;#8217;t
+include any statements of intent from the candidates. Votes will be
+accepted through 2011-09-06 12:00 (presumably &lt;span class="caps"&gt;UTC&lt;/span&gt;). So perhaps we&amp;#8217;ll
+hear from the candidates themselves. Until then, to save others a little
+bit of Googling, here are their Launchpad profiles and Ubuntu wiki&amp;nbsp;pages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Charlie Smotherman (porthose) - &lt;a href="https://launchpad.net/~cjsmo"&gt;Launchpad&lt;/a&gt; - &lt;a href="https://wiki.ubuntu.com/CharlieSmotherman"&gt;Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Micah Gersten (micahg) - &lt;a href="https://launchpad.net/~micahg"&gt;Launchpad&lt;/a&gt; - &lt;a href="https://wiki.ubuntu.com/micahg"&gt;Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Stefano Rivera (tumbleweed) - &lt;a href="https://launchpad.net/~stefanor"&gt;Launchpad&lt;/a&gt; - &lt;a href="https://wiki.ubuntu.com/StefanoRivera"&gt;Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dave Walker (Daviey) - &lt;a href="https://launchpad.net/~davewalker"&gt;Launchpad&lt;/a&gt; - &lt;a href="https://wiki.ubuntu.com/davewalker"&gt;Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Tue, 23 Aug 2011 12:57:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2011-08-23:2011/08/23/ubuntu-developer-membership-board-election/</guid><category>community</category><category>election</category><category>governance</category><category>MOTU</category><category>Ubuntu</category></item><item><title>Ubuntu Release Calendar</title><link>http://blog.andrewsomething.com/2011/08/19/ubuntu-release-calendar/</link><description>&lt;p&gt;&lt;img alt="Calendar" src="http://blog.andrewsomething.com/images/2011/08/vcalendar.png" /&gt;One thing I&amp;#8217;ve been missing recently has been having the
+Ubuntu &lt;a href="https://wiki.ubuntu.com/ReleaseSchedule"&gt;release schedule&lt;/a&gt; in my calendar. &lt;a href="https://launchpad.net/~vorlon"&gt;Steve Langasek&lt;/a&gt; used to
+provide &lt;a href="http://people.ubuntu.com/~vorlon/UbuntuReleaseSchedule.ics"&gt;one in ical format&lt;/a&gt;, but it wasn&amp;#8217;t update for Natty nor
+Oneiric. &lt;a href="http://fridge.ubuntu.com/calendars/fridge/"&gt;The Fridge&lt;/a&gt; has a calandar containing a schedule of events
+for  #ubuntu-meeting, but that doesn&amp;#8217;t include the release schedule.
+It&amp;#8217;s also a bit too high volume for me to want to keep it in my&amp;nbsp;main calendar view.&lt;/p&gt;
+&lt;p&gt;So without further adieu, I am announcing that I will be maintaining a
+public Google Calendar for the Ubuntu release&amp;nbsp;schedule.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;span class="caps"&gt;HTML&lt;/span&gt; - &lt;a href="http://goo.gl/q4yZV"&gt;http://goo.gl/q4yZV&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class="caps"&gt;ICAL&lt;/span&gt; - &lt;a href="http://goo.gl/TUzUd"&gt;http://goo.gl/TUzUd&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div&gt;
+
+Please feel free to subscribe to it.
+
+&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Fri, 19 Aug 2011 23:39:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2011-08-19:2011/08/19/ubuntu-release-calendar/</guid><category>calendar</category><category>community</category><category>Ubuntu</category></item><item><title>Can i haz answers?</title><link>http://blog.andrewsomething.com/2011/07/14/can-i-haz-answers/</link><description>&lt;p&gt;&lt;a href="http://askubuntu.com/"&gt;&lt;img alt="AskUbuntu" src="http://blog.andrewsomething.com/images/2011/07/otop6.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://askubuntu.com/"&gt;AskUbuntu&lt;/a&gt; is continuing to grow. According to the
+Stack Exchange &lt;a href="http://stackexchange.com/sites"&gt;site directory&lt;/a&gt;, we&amp;nbsp;have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;17k&amp;nbsp;Questions&lt;/li&gt;
+&lt;li&gt;31k&amp;nbsp;Answers&lt;/li&gt;
+&lt;li&gt;19k&amp;nbsp;User&lt;/li&gt;
+&lt;li&gt;21k Visits/Day&lt;/li&gt;
+&lt;li&gt;81% of questions have accepted&amp;nbsp;answers&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;While 81% puts us into the same league as Stack Overflow and Super User,
+we still have hundreds of questions without any answer at all. In fact,
+about 10% of all are questions are &lt;a href="http://askubuntu.com/unanswered"&gt;unanswered&lt;/a&gt;. Here&amp;#8217;s just a handful
+of&amp;nbsp;them:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/14042/570"&gt;How to restrict / limit the number of &lt;span class="caps"&gt;RDP&lt;/span&gt;&amp;nbsp;sessions?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/48371/570"&gt;How do I configure a fingerprint&amp;nbsp;scanner?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/42144/570"&gt;How to set up a Serial-to-Ethernet Converter With a Virtual Serial&amp;nbsp;Port?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/43318/570"&gt;How do I share files with a&amp;nbsp;Mac?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/32926/570"&gt;Where are debug symbols for backported&amp;nbsp;packages?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/44806/570"&gt;Anyone using &lt;span class="caps"&gt;KVM&lt;/span&gt; with Spice protocol on&amp;nbsp;Ubuntu?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://askubuntu.com/q/46840/570"&gt;Check if pendrive is&amp;nbsp;persistent?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Killing some free time on the internets? How about you stop looking at
+lolcatz and answer a few questions that slipped through the cracks? How
+about starting with&amp;nbsp;mine:&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://askubuntu.com/q/53014/570"&gt;Why use sbuild over&amp;nbsp;pbuilder?&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="StackExchange Error Lolcat" src="http://blog.stackoverflow.com/wp-content/uploads/error-lolcat-problemz.jpg" /&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Thu, 14 Jul 2011 03:12:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2011-07-14:2011/07/14/can-i-haz-answers/</guid><category>askubuntu</category><category>community</category><category>support</category></item><item><title>GPG key transition</title><link>http://blog.andrewsomething.com/2010/09/24/gpg-key-transition/</link><description>&lt;p&gt;I’ve recently set up a stronger (4096R) OpenPGP key, and will be
+transitioning away from my old (1024D) one. The old key will continue to
+be valid for some time, but i prefer all future correspondence to come
+to the new one. I would also like this new key to be re-integrated into
+the web of trust. Please find here &lt;a href="http://people.ubuntu.com/~andrewsomething/key-transition-2010-09-24.txt"&gt;a statement signed with both
+keys&lt;/a&gt;, certifying the&amp;nbsp;transition.&lt;/p&gt;
+&lt;p&gt;The old key&amp;nbsp;was:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;pub 1024D/6286FB6D 2007-11-03 Key fingerprint = 62EE D4F4 6D46 BE9E FF02 220A 2F89 3E7C 6286 FB6D
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And the new key&amp;nbsp;is:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;pub 4096R/D53FDCB1 2010-09-24 Key fingerprint = 6EB2 23D7 D71E 67A5 3C93 A7DA 3B56 E2BB D53F DCB1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To fetch my new key from a public key server, you can simply&amp;nbsp;do:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --keyserver pgp.mit.edu --recv-key D53FDCB1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you already know my old key, you can now verify that the new key is
+signed by the old&amp;nbsp;one:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --check-sigs D53FDCB1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you don&amp;#8217;t already know my old key, or you just want to be double
+extra paranoid, you can check the fingerprint against the one&amp;nbsp;above:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --fingerprint D53FDCB1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you are satisfied that you&amp;#8217;ve got the right key, and the UIDs match
+what you expect, I&amp;#8217;d appreciate it if you would sign my&amp;nbsp;key:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --sign-key D53FDCB1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Lastly, if you could upload these signatures, i would appreciate it. You
+can just upload the signatures to a public keyserver&amp;nbsp;directly:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;gpg --keyserver pgp.mit.edu --send-key D53FDCB1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Thanks!&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Fri, 24 Sep 2010 22:21:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2010-09-24:2010/09/24/gpg-key-transition/</guid><category>gpg</category><category>me</category></item><item><title>Doctors Without Borders Haiti Emergency Response</title><link>http://blog.andrewsomething.com/2010/01/14/doctors-without-borders-haiti-emergency-response/</link><description>&lt;p&gt;Please excuse this break from your normally scheduled Ubuntu&amp;nbsp;programing&amp;#8230;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://donate.doctorswithoutborders.org/SSLPage.aspx?pid=197&amp;amp;hbc=1&amp;amp;source=ADQ1001E1D01"&gt;&lt;img alt="Support Doctors Without Borders in Haiti" src="http://www.doctorswithoutborders.org/images/donate/button-haiti-earthquake-480.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://www.doctorswithoutborders.org/aboutus/"&gt;Doctors Without Borders/Médecins Sans Frontières (&lt;span class="caps"&gt;MSF&lt;/span&gt;)&lt;/a&gt; is
+an independent international medical humanitarian organization. If you
+can spare even a few dollars to help in the emergency efforts under way
+in Haiti, I strongly recommend giving what you can to &lt;span class="caps"&gt;MSF&lt;/span&gt;.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Thu, 14 Jan 2010 04:43:00 -0500</pubDate><guid>tag:blog.andrewsomething.com,2010-01-14:2010/01/14/doctors-without-borders-haiti-emergency-response/</guid><category>NGO</category></item><item><title>UDS-L, Dallas Day One</title><link>http://blog.andrewsomething.com/2009/11/17/uds-l-dallas-day-one/</link><description>&lt;p&gt;Well, I finally made it to a Ubuntu Developer Summit. It&amp;#8217;s been great to
+put some faces on the names I interact with on mailing-lists and read in&amp;nbsp;changelogs.&lt;/p&gt;
+&lt;p&gt;I don&amp;#8217;t really have much to pontificate on so this will be quick, but
+there are a couple things to&amp;nbsp;share.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://edge.launchpad.net/~elementaryart/+archive/ppa"&gt;&lt;img alt="elementary" src="http://blog.andrewsomething.com/images/2009/11/icons.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;My roommate ending up being Daniel Fore, designer of the
+elementary icon set that the Humanity icons are based on. So I was able
+to help get them up on a &lt;a href="https://edge.launchpad.net/~elementaryart/+archive/ppa"&gt;&lt;span class="caps"&gt;PPA&lt;/span&gt;.&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You can grab packages based on the latests Bazaar trunk for&amp;nbsp;Karmic.&lt;/p&gt;
+&lt;p&gt;I mostly focused on attending sessions on bug management and distributed
+development today. I saved copies of the gobby notes for each session I
+attended:  &lt;a href="http://people.ubuntu.com/~andrewsomething/uds-l/notes/"&gt;http://people.ubuntu.com/~andrewsomething/uds-l/notes/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The plenary session demoing &lt;a href="https://wiki.ubuntu.com/Quickly"&gt;Quickly&lt;/a&gt; made me excited to dive back
+into &lt;a href="http://www.diveintopython.org/"&gt;python&lt;/a&gt;. The videos aren&amp;#8217;t up yet, but there are previous
+&lt;a href="http://ubuntu.mirocommunity.com/video/84/getting-started-with-quickly"&gt;screen-casts&lt;/a&gt; showing it&amp;nbsp;off.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Tue, 17 Nov 2009 04:56:00 -0500</pubDate><guid>tag:blog.andrewsomething.com,2009-11-17:2009/11/17/uds-l-dallas-day-one/</guid><category>artwork</category><category>bzr</category><category>ppa</category><category>testing</category><category>Ubuntu</category><category>UDS</category></item><item><title>Bazaar Explorer 0.9.0 Now in PPA</title><link>http://blog.andrewsomething.com/2009/11/04/bazaar-explorer-0-9-0-now-in-ppa/</link><description>&lt;p&gt;&lt;a href="http://doc.bazaar-vcs.org/explorer/en/"&gt;&lt;img alt="bzr icon" src="http://doc.bazaar-vcs.org/explorer/en/_static/bazaar-explorer-64.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;One of the things that I&amp;#8217;ve always loved about bzr is that it is a
+powerful yet intuitive solution for version control. Now &lt;a href="http://doc.bazaar-vcs.org/explorer/en/"&gt;Bazaar
+Explorer&lt;/a&gt;, a wonderful cross-platform Qt-based &lt;span class="caps"&gt;GUI&lt;/span&gt; front-end to
+the Bazaar &lt;span class="caps"&gt;VCS&lt;/span&gt;, is making it even easier. Whether you&amp;#8217;re just getting
+started with &lt;span class="caps"&gt;DVCS&lt;/span&gt; or you just prefer a graphical environment, you should
+really check it out. (You can take a tour &lt;a href="http://doc.bazaar-vcs.org/explorer/en/visual-tour-gnome.html"&gt;here&lt;/a&gt;.)&lt;/p&gt;
+&lt;p&gt;[&lt;img alt="bzr-exploer screenshot" src="http://doc.bazaar-vcs.org/explorer/en/_static/home-page-screenshot.png" /&gt;]&lt;/p&gt;
+&lt;p&gt;There&amp;#8217;s been a Windows installer for Bazaar Explorer for awhile, and of
+course the source code is over there on &lt;a href="https://edge.launchpad.net/bzr-explorer"&gt;Launchpad&lt;/a&gt;. Even though
+Bazaar&amp;#8217;s plugin system makes it simple to install it on Linux from
+source, it just doesn&amp;#8217;t feel like it&amp;#8217;s keeping with the theme of making
+things easy. So I went and packaged it for&amp;nbsp;Ubuntu!&lt;/p&gt;
+&lt;p&gt;You can now grab it from the &lt;a href="https://edge.launchpad.net/~bzr-explorer-dev/+archive/ppa"&gt;Bazaar Explorer &lt;span class="caps"&gt;PPA&lt;/span&gt;&lt;/a&gt;. It should be
+entering Debian Unstable and Ubuntu Lucid in the near future, but we
+want to give you &lt;span class="caps"&gt;PPA&lt;/span&gt; users the chance to kick the tires first. Just add
+&lt;strong&gt;ppa:bzr-explorer-dev/ppa&lt;/strong&gt; to your system&amp;#8217;s Software&amp;nbsp;Sources.&lt;/p&gt;
+&lt;p&gt;There are packages for Karmic, Jaunty, Intrepid, and Hardy in the &lt;span class="caps"&gt;PPA&lt;/span&gt;,
+but please note that as bzr-explorer depends on bzr (&gt;= 1.14) and qbzr
+(&gt;= 0.11), users of Ubuntu releases before Karmic will also need to add
+the &lt;a href="https://edge.launchpad.net/~bzr/+archive/ppa"&gt;&lt;span class="caps"&gt;PPA&lt;/span&gt; for Bazaar Developers&lt;/a&gt;.  Also be aware that Hardy users might
+have some issues as parts of Explorer (e.g. the Preferences dialog)
+depend on Qt/PyQt 4.4.  (See:&lt;a href="https://bugs.launchpad.net/bzr-explorer/+bug/429549"&gt;Bug #429549&lt;/a&gt;). That said, every thing
+should be working smoothly in&amp;nbsp;Karmic.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 04 Nov 2009 04:26:00 -0500</pubDate><guid>tag:blog.andrewsomething.com,2009-11-04:2009/11/04/bazaar-explorer-0-9-0-now-in-ppa/</guid><category>bzr</category><category>explorer</category><category>ppa</category></item><item><title>U.K. National Lottery Winner!</title><link>http://blog.andrewsomething.com/2009/10/05/u-k-national-lottery-winner/</link><description>&lt;p&gt;Well, not&amp;nbsp;really&amp;#8230;.&lt;/p&gt;
+&lt;p&gt;For some reason, my spam folder doesn&amp;#8217;t contain the usual Viagra, porn,
+and Nigerian prince emails.  The most frequent spam I receive generally
+is letting me know that I just won £1,000,000 in the &lt;span class="caps"&gt;U.K.&lt;/span&gt; National
+Lottery. As I&amp;#8217;ve only been in the &lt;span class="caps"&gt;U.K.&lt;/span&gt; once, and I certainly never
+played the lottery while there, I assume they are a &lt;a href="http://www.national-lottery.co.uk/player/p/help/yoursecurity/commonscams.ftl"&gt;scam&lt;/a&gt;.
+(&lt;a href="http://xkcd.com/570/"&gt;Although, there might actually be some lottery official out there who
+doesn&amp;#8217;t understand why I don&amp;#8217;t want to collect my money.&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;Well, the other day I opened an email from a British company that began:
+&amp;#8220;Congratulations!&amp;#8221; This time I&amp;#8217;m pretty sure it wasn&amp;#8217;t a scam. The good
+folks at Canonical accepted my sponsorship request for&lt;a href="https://wiki.ubuntu.com/UDS-L"&gt;&lt;span class="caps"&gt;UDS&lt;/span&gt; Dallas&lt;/a&gt;! As
+this will be my first &lt;span class="caps"&gt;UDS&lt;/span&gt;, I&amp;#8217;m incredibly excited. I just booked my
+tickets, and can&amp;#8217;t wait to finally meet you all in&amp;nbsp;meatspace.&lt;/p&gt;
+&lt;p&gt;See you in&amp;nbsp;Dallas!&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Mon, 05 Oct 2009 20:43:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-10-05:2009/10/05/u-k-national-lottery-winner/</guid><category>community</category><category>me</category><category>Ubuntu</category><category>UDS</category></item><item><title>Ubuntu 9.10 Countdown Banners</title><link>http://blog.andrewsomething.com/2009/10/02/ubuntu-9-10-countdown-banners/</link><description>&lt;p&gt;As I&amp;#8217;m sure you all know by now, Ubuntu (and friends) 9.10 Beta images
+were released yesterday. What you might not know is that the countdown
+banners have also been released. You can grab them &lt;a href="http://www.ubuntu.com/getubuntu/countdown"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;Option 1 - &amp;#8220;Stars&amp;#8221; by &lt;a href="http://thorwil.wordpress.com/"&gt;Thorsten Wilms&amp;nbsp;(thorwil)&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="" src="http://www.ubuntu.com/files/countdown/910/countdown-9.10-1/27.png" title="Karmic Coutdown Stars" /&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;script&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;text/javascript&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http://www.ubuntu.com/files/countdown/display.js&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Option 2 - &amp;#8220;The spotlight&amp;#8221; by &lt;a href="http://ubuntuteen.blogspot.com/"&gt;Andrew&amp;nbsp;Higginson&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="" src="http://www.ubuntu.com/files/countdown/910/countdown-9.10-2/27.png" title="Ubuntu Karmic Countdown Spotlight" /&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;script&lt;/span&gt; &lt;span class="na"&gt;type=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;text/javascript&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http://www.ubuntu.com/files/countdown/display2.js&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 style="text-align:left;"&gt;Option 3: Simple image (for those who can&amp;#8217;t use&amp;nbsp;javascript)&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="" src="http://www.ubuntu.com/files/countdown/static.png" title="Karmic Countdown Static" /&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http://www.ubuntu.com/&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&amp;lt;img&lt;/span&gt; &lt;span class="na"&gt;src=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http://www.ubuntu.com/files/countdown/static.png&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;width=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;180&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;height=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;150&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;alt=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Ubuntu: For Desktops, Servers, Netbooks and in the cloud&amp;quot;&lt;/span&gt; &lt;span class="na"&gt;border=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;0&amp;quot;&lt;/span&gt; &lt;span class="nt"&gt;/&amp;gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Fri, 02 Oct 2009 17:15:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-10-02:2009/10/02/ubuntu-9-10-countdown-banners/</guid><category>artwork</category><category>Ubuntu</category></item><item><title>The Web (and Ubuntu) Can Make a Difference</title><link>http://blog.andrewsomething.com/2009/08/21/the-web-and-ubuntu-can-make-a-difference/</link><description>&lt;p&gt;The week of September 14-21, 2009 is &lt;a href="http://mozillaservice.org/"&gt;Mozilla Service Week&lt;/a&gt;, brought
+to you by the good folks behind Firefox and Thunderbird. They&amp;#8217;ve
+partnered with &lt;a href="http://www.idealist.org"&gt;Idealist.org&lt;/a&gt;, a non-profit jobs listing site, to link
+service-minded techies with non-profit organizations in need to their&amp;nbsp;help.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;We&amp;#8217;re looking for people who want to share, give, engage, create, and
+collaborate by offering their time and talent to local organizations
+and people who need their&amp;nbsp;help.&lt;/p&gt;
+&lt;p&gt;Mozilla believes everyone should know how to use the Internet, have
+easy access to it, and have a good experience when they&amp;#8217;re online. By
+utilizing our community&amp;#8217;s talents for writing, designing, programming,
+developing, and all-around technical know-how, we believe we can make
+the Web a better place for&amp;nbsp;everyone.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Spread the&amp;nbsp;word:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.spreadfirefox.com/affiliates/homepage?category=54&amp;amp;locale=41#getbuttons"&gt;Put a badge on your&amp;nbsp;blog.&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://mozillaservice.org/img/flyers/en/Mozilla_Service_Week_Flyer_Letter_format.pdf"&gt;Post a flyer at your school or&amp;nbsp;workplace.&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The &lt;a href="https://wiki.ubuntu.com/NGO"&gt;Ubuntu &lt;span class="caps"&gt;NGO&lt;/span&gt; Team&lt;/a&gt; is also working on making Ubuntu a great
+platform to help non-profits. Check out &lt;a href="http://daniel.holba.ch/blog/?p=462"&gt;Daniel&amp;#8217;s recent post&lt;/a&gt;for some
+updates on our work, including efforts to &lt;a href="http://daniel.holba.ch/blog/?p=478"&gt;make life with Ubuntu easier
+for organizations working in places with out cheap and accessible&amp;nbsp;Internet.&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Fri, 21 Aug 2009 19:27:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-08-21:2009/08/21/the-web-and-ubuntu-can-make-a-difference/</guid><category>community</category><category>firefox</category><category>mozilla</category><category>NGO</category></item><item><title>Congratulations Launchpad Team!</title><link>http://blog.andrewsomething.com/2009/07/21/congratulations-launchpad-team/</link><description>&lt;p&gt;&lt;img alt="lp-logo" src="http://blog.andrewsomething.com/images/2009/07/lp-logo1.png" /&gt;&lt;/p&gt;
+&lt;p&gt;I am sure you&amp;#8217;ve all seen this already, but I just wanted
+to add my congratulations every one involved in the &lt;a href="https://lists.launchpad.net/launchpad-users/msg05118.html"&gt;open&lt;/a&gt;
+&lt;a href="http://blog.canonical.com/?p=192"&gt;sourcing&lt;/a&gt; of &lt;a href="http://blog.launchpad.net/general/launchpad-is-now-open-source"&gt;Launchpad&lt;/a&gt;!&lt;/p&gt;
+&lt;p&gt;After the friendly and inclusive nature of the Ubuntu community,
+Launchpad and Bazzar really are responsible for deepening my involvement
+in development. I find &lt;span class="caps"&gt;LP&lt;/span&gt; much more welcoming and user-friendly than
+Debian&amp;#8217;s &lt;span class="caps"&gt;BTS&lt;/span&gt; (though I really love and depend on &lt;a href="http://packages.qa.debian.org/"&gt;&lt;span class="caps"&gt;PTS&lt;/span&gt;&lt;/a&gt;), Bugzilla, or
+Trac. It&amp;#8217;s cross-project intregration is really a killer feature. Bazzar
+both introduced me to &lt;span class="caps"&gt;DVCS&lt;/span&gt; and convinced me of its supriority to
+Subversion. I also just find it so much more user-friendly than other
+solutions such as &lt;span class="caps"&gt;GIT&lt;/span&gt; (although admittedly I have no experience with&amp;nbsp;Mercurial).&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m glad that the platform that has encouraged me to contribute to open
+source has finally become open source itself (soyuz&amp;nbsp;included!).&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Tue, 21 Jul 2009 18:56:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-07-21:2009/07/21/congratulations-launchpad-team/</guid><category>launchpad</category></item><item><title>GNOME-Colors in Karmic</title><link>http://blog.andrewsomething.com/2009/07/08/gnome-colors-in-karmic/</link><description>&lt;p&gt;&lt;img alt="GNOME-Colors" src="http://blog.andrewsomething.com/images/2009/07/gnomecolors.png" /&gt;&lt;/p&gt;
+&lt;p&gt;With hundreds of thousands of downloads on &lt;span class="caps"&gt;GNOME&lt;/span&gt;-Look, &lt;a href="http://www.gnome-look.org/content/show.php/GNOME-colors?content=82562"&gt;&lt;span class="caps"&gt;GNOME&lt;/span&gt;-Colors&lt;/a&gt;
+(and its friends &lt;a href="http://www.gnome-look.org/content/show.php/Shiki-Colors?content=86717"&gt;Shiki-Colors&lt;/a&gt; and &lt;a href="http://www.gnome-look.org/content/show.php/Arc-Colors+GDM-Walls?content=88305"&gt;Arc-Colors&lt;/a&gt;) is with out a
+doubt one of the most popular themes around for the &lt;span class="caps"&gt;GNOME&lt;/span&gt; desktop. It&amp;#8217;s
+no surprise with  six different color themes and the ability to match
+you icon theme, &lt;span class="caps"&gt;GTK&lt;/span&gt;+ theme, &lt;span class="caps"&gt;GDM&lt;/span&gt; theme, and wallpaper. Victor (aka
+perfectska04) has put together a wonderful set, and it&amp;#8217;s about time that
+they are in the Ubuntu&amp;nbsp;archives.&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m pleased to announce that they are now all just a simple apt-get
+install away in&amp;nbsp;Karmic.&lt;/p&gt;
+&lt;p&gt;The meta-packages &lt;strong&gt;gnome-colors, arc-colors, and shiki-colors&lt;/strong&gt; will
+pull in all six color variations. For those with low bandwidth or
+expensive connections, you can also just install single variations:
+gnome-{brave, dust, human, noble, wine, or wise}-icon-theme,
+shiki-{brave, dust, human, noble, wine, or wise}-theme, and arc-{brave,
+dust, human, noble, wine, or wise}. There&amp;#8217;s also a Xfwm/Xfce4 theme:&amp;nbsp;shiki-colors-xfwm-theme.&lt;/p&gt;
+&lt;p&gt;For those still running Hardy, Intrepid, or Jaunty, we&amp;#8217;re also running a
+&lt;a href="https://launchpad.net/~gnome-colors-packagers/+archive/ppa"&gt;&lt;span class="caps"&gt;GNOME&lt;/span&gt;-Colors &lt;span class="caps"&gt;PPA&lt;/span&gt;&lt;/a&gt; where you will always be able to grab the latest&amp;nbsp;versions.&lt;/p&gt;
+&lt;p&gt;So much thanks to Victor for the themes and being so open to making
+changes upstream that made things easier for us to package and Benjamin
+Drung for all his work to make this&amp;nbsp;happen.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 08 Jul 2009 06:59:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-07-08:2009/07/08/gnome-colors-in-karmic/</guid><category>artwork</category><category>ppa</category><category>Ubuntu</category></item><item><title>Ubuntu NGO Kicking Off!</title><link>http://blog.andrewsomething.com/2009/06/24/ubuntu-ngo-kicking-off/</link><description>&lt;p&gt;&lt;em&gt;Ubuntu &lt;span class="caps"&gt;NGO&lt;/span&gt; will be having its first meeting this Friday, &lt;a href="http://www.timeanddate.com/worldclock/fixedtime.html?month=6&amp;amp;day=26&amp;amp;year=2009&amp;amp;hour=15&amp;amp;min=0&amp;amp;sec=0&amp;amp;p1=0"&gt;26th June
+2009, 15:00 &lt;span class="caps"&gt;UTC&lt;/span&gt;&lt;/a&gt; in &lt;a href="http://webchat.freenode.net/?randomnick=1&amp;amp;channels=ubuntu-ngo"&gt;#ubuntu-ngo on&amp;nbsp;irc.freenode.net&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;A little over a month ago, Daniel Holbach asked &lt;a href="http://daniel.holba.ch/blog/?p=422"&gt;who was using Ubuntu in
+their &lt;span class="caps"&gt;NGO&lt;/span&gt;?&lt;/a&gt; In the time that&amp;#8217;s passed, a group of Ubunteros has
+coalesced around the idea of making Ubuntu a great platform for NGOs,
+non-profits, and charities. Whether they&amp;#8217;re using Ubuntu in their back
+office, their web server, or giving out refurbished computers loaded
+with Ubuntu, we want to focus on the specific needs they face and how
+Ubuntu can help meet&amp;nbsp;them.&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;m especially excited about this new initiative as over my life I&amp;#8217;ve
+been involved with a number of non-profit and advocacy organizations. I
+see this project as a way to tie together two things I&amp;#8217;m involved with
+that seem separate but come from similar motivations, making the world a
+better place and give back to community. It&amp;#8217;s a natural fit for the
+Ubuntu community as well. The same things that motivate so many of us to
+contribute to Ubuntu motivate others (and some of us) to work for and
+volunteer at&amp;nbsp;NGOs.&lt;/p&gt;
+&lt;p&gt;There are a lot of possibilities with this, and it&amp;#8217;s just starting to
+take shape now. It&amp;#8217;s a great time to join in and help shape the group
+and our goals. Come to the meeting. &lt;a href="https://launchpad.net/~ubuntu-ngo"&gt;Join the team.&lt;/a&gt; Check out the
+&lt;a href="https://wiki.ubuntu.com/NGO"&gt;wiki page&lt;/a&gt; and see some of the &lt;a href="https://wiki.ubuntu.com/NGO/Actions"&gt;things we&amp;#8217;ve already started working
+on&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Some of the things we&amp;#8217;re interested in&amp;nbsp;are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Finding out about NGOs that are using Ubuntu right now and sharing
+    their&amp;nbsp;stories.&lt;/li&gt;
+&lt;li&gt;Studying different use&amp;nbsp;cases.&lt;/li&gt;
+&lt;li&gt;Documenting of best&amp;nbsp;practices.&lt;/li&gt;
+&lt;li&gt;Looking at work that some LoCo teams have already done and
+    encouraging connection between NGOs and&amp;nbsp;LoCos.&lt;/li&gt;
+&lt;li&gt;Investigating ways to deal with regions without Internet&amp;nbsp;access.&lt;/li&gt;
+&lt;li&gt;Packaging a &lt;span class="caps"&gt;CRM&lt;/span&gt; solution for&amp;nbsp;non-profits.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That last point is something that I&amp;#8217;ve already begun working on. We&amp;#8217;ve
+started packaging &lt;a href="http://civicrm.org/"&gt;CiviCRM&lt;/a&gt;, an open-source constituent relationship
+management solution designed specifically to meet the needs of advocacy,
+non-profit and non-governmental groups. Our packaging branch is host on
+Launchpad: &lt;a href="https://code.edge.launchpad.net/~ubuntu-ngo/civicrm/ubuntu"&gt;lp:~ubuntu-ngo/civicrm/ubuntu&lt;/a&gt; If you&amp;#8217;re interested in
+pitching in, there&amp;#8217;s a &lt;span class="caps"&gt;TODO&lt;/span&gt; file in /debian and a watch file to pull the
+upstream source. I&amp;#8217;d be particularly grateful if someone with experience
+packaging with dbconfig-common took a&amp;nbsp;look.&lt;/p&gt;
+&lt;p&gt;This is a great opportunity to get in a the beginning of an important
+project! Our first meeting is this Friday, &lt;a href="http://www.timeanddate.com/worldclock/fixedtime.html?month=6&amp;amp;day=26&amp;amp;year=2009&amp;amp;hour=15&amp;amp;min=0&amp;amp;sec=0&amp;amp;p1=0"&gt;26th June 2009, 15:00 &lt;span class="caps"&gt;UTC&lt;/span&gt;&lt;/a&gt;
+in &lt;a href="http://webchat.freenode.net/?randomnick=1&amp;amp;channels=ubuntu-ngo"&gt;#ubuntu-ngo on&amp;nbsp;irc.freenode.net&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Got any ideas? Let me know in the&amp;nbsp;comments!&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 24 Jun 2009 22:50:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-06-24:2009/06/24/ubuntu-ngo-kicking-off/</guid><category>CiviCRM</category><category>community</category><category>NGO</category><category>Ubuntu</category></item><item><title>A Few Ubuntu-related Ubiquity Scripts</title><link>http://blog.andrewsomething.com/2009/06/10/a-few-ubuntu-related-ubiquity-scripts/</link><description>&lt;p&gt;Awhile back I hacked up a few Ubuntu releated scripts for Ubiquity. No,
+not the Ubuntu installer. The Firefox add-on.  Now that I have one of
+these fancy blog thing-a-majigs, I figured I&amp;#8217;d share them with all of
+you. Hopefully some one else will find them&amp;nbsp;useful.&lt;/p&gt;
+&lt;p&gt;To make a long story short, &lt;a href="http://labs.mozilla.com/projects/ubiquity/"&gt;Ubiquity&lt;/a&gt; is &lt;span class="caps"&gt;GNOME&lt;/span&gt;-Do for your&amp;nbsp;browser.&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;ve got a number of simple scripts that you can use with it to do
+Ubuntu related tasks in&amp;nbsp;Firefox:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;AptURL - Install a package using AptURL. If you&amp;#8217;re reading a post
+    about a package, just highlight the package name and call Ubiquity.
+    No need to open a terminal or package manager. Usage: &lt;code&gt;apturl
+    [package]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Debian Package Search - One of the sites I end up using the most in
+    my &lt;span class="caps"&gt;MOTU&lt;/span&gt; work is http://packages.debian.org/ This brings it just a
+    keystroke away. Usage: &lt;code&gt;debian-packages [package]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Launchpad Ubuntu Package Search - You guessed it. Search Ubuntu
+    packages on &lt;span class="caps"&gt;LP&lt;/span&gt;. Usage: &lt;code&gt;lp-packages [package]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Launchpad Team and People Search - What do you think it does? Usage:
+    &lt;code&gt;lp-team-and-people [team or person]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Launchpad Ubuntu Bug Search - Simular to the two above&amp;#8230; 
+    &lt;code&gt;lp-ubuntu-bug [bug \# or description]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Ubuntu Man Page Search - Read the man page! Usage: &lt;code&gt;ubuntu-man
+    [package]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Ubuntu Package database searcher- This one searches
+    packages.ubuntu.com It was written by David Futcher (&lt;a href="https://edge.launchpad.net/~bobbo"&gt;bobbo&lt;/a&gt;), and
+    it was what inspired me to make all the others. Usage:
+    &lt;code&gt;ubuntu-packages [package]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Report Ubuntu Bug - Report a bug in a Ubuntu package on Launchpad.
+    (Although, chances are you should really be using Apport.) Usage:
+    &lt;code&gt;ubuntu-report-bug [package]&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You can grab them&amp;nbsp;with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;bzr branch lp:~andrewsomething/+junk/ubiquity-commands
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 10 Jun 2009 19:04:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-06-10:2009/06/10/a-few-ubuntu-related-ubiquity-scripts/</guid><category>firefox</category><category>Ubuntu</category></item><item><title>PPAs and Daily Builds</title><link>http://blog.andrewsomething.com/2009/06/10/ppas-and-daily-builds/</link><description>&lt;p&gt;So earlier today I was throwing together a script to publish bzr
+snapshots to a &lt;span class="caps"&gt;PPA&lt;/span&gt;. My use case was pretty simple. It&amp;#8217;s a debian native
+package. So the packaging and upstream are one and the same, so no need
+to merge branches or make sure patches apply cleanly. Basically just
+pull, build, and publish with a little bit of magic to set the versions&amp;nbsp;correctly.&lt;/p&gt;
+&lt;p&gt;But as I know there are a number of PPAs publishing snapshots of
+upstream sources, I wanted to take a look around and see what others are
+using. Unfortunetely, there doesn&amp;#8217;t really seem to be a location
+pointing to a list of projects or with general information on how to go
+about doing this. So here are some of the things I came across, just to
+put it one place. Maybe it&amp;#8217;s time for a wiki&amp;nbsp;page?&lt;/p&gt;
+&lt;p&gt;First of all, &lt;a href="https://edge.launchpad.net/~james-w"&gt;James Westby&lt;/a&gt; is up to something really exciting with
+bzr-builder (a plugin for bzr written in python) and Daily Debs. The
+basic idea is to make doing nightly builds of upstream projects almost
+trivial by using simple recipe files while bzr-builder does all the
+heavy lifting. A recipie file could look as simple as&amp;nbsp;this:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;branch lp:foo
+merge lp:foo/debian-pkg
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/blockquote&gt;
+&lt;p&gt;I can&amp;#8217;t wait to see where this is going and to hear more about the
+discussions around it at &lt;span class="caps"&gt;UDS&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;You can find the spec here:&amp;nbsp;https://wiki.ubuntu.com/DailyUpstreamBuildsPOCSpec&lt;/p&gt;
+&lt;p&gt;The code for bzr-builder is here:&amp;nbsp;https://code.edge.launchpad.net/~james-w/bzr-builder/trunk&lt;/p&gt;
+&lt;p&gt;And a &lt;span class="caps"&gt;PPA&lt;/span&gt; of bzr-builder made with bzr-builder is here:&amp;nbsp;https://edge.launchpad.net/~dailydebs-team/+archive/bzr-builder&lt;/p&gt;
+&lt;p&gt;Some of the most used daily build PPAs are probably the &lt;a href="https://edge.launchpad.net/%7Eubuntu-mozilla-daily/+archive/ppa"&gt;Mozilla Daily
+Builds&lt;/a&gt; and  &lt;a href="https://edge.launchpad.net/%7Echromium-daily/+archive/ppa"&gt;Chromium Daily Builds&lt;/a&gt;. Along with the
+&lt;a href="https://edge.launchpad.net/%7Egwibber-daily/+archive/ppa"&gt;gwibber-daily&lt;/a&gt; &lt;span class="caps"&gt;PPA&lt;/span&gt;, these are run by &lt;a href="https://code.edge.launchpad.net/%7Efta"&gt;Fabien Tassin&lt;/a&gt;. The bash
+scripts he uses to produce them can be found here:&amp;nbsp;https://code.edge.launchpad.net/~fta/+junk/ppa-scripts&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://amarok.kde.org/wiki/User:Apachelogger/Project_Neon"&gt;Project Neon&lt;/a&gt; has a &lt;a href="https://edge.launchpad.net/~project-neon/+archive/ppa"&gt;&lt;span class="caps"&gt;PPA&lt;/span&gt;&lt;/a&gt;delivering nighly builds of Amarok and
+other &lt;span class="caps"&gt;KDE&lt;/span&gt; goodies. The build scripts are written in Ruby and hosted on
+&lt;span class="caps"&gt;KDE&lt;/span&gt;&amp;#8217;s svn:&amp;nbsp;http://websvn.kde.org/trunk/extragear/multimedia/amarok/supplementary_scripts/neon/&lt;/p&gt;
+&lt;p&gt;Anyone else doing something cool? Know where to find some more&amp;nbsp;examples?&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 10 Jun 2009 05:46:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-06-10:2009/06/10/ppas-and-daily-builds/</guid><category>bzr</category><category>daily builds</category><category>ppa</category><category>Ubuntu</category></item><item><title>Reflections on being an Ubuntu Universe Contributor</title><link>http://blog.andrewsomething.com/2009/06/01/reflections-on-being-an-ubuntu-universe-contributor/</link><description>&lt;p&gt;Last week I made the big leap from &amp;#8220;contributor&amp;#8221; to &amp;#8220;developer.&amp;#8221; At the
+most recent &lt;span class="caps"&gt;MOTU&lt;/span&gt;-Council meeting, my application to become a Master of
+the Universe was&amp;nbsp;approved!&lt;/p&gt;
+&lt;p&gt;Now, I want to take a minute and think about the Ubuntu Universe
+Contributor (aka Ubuntu Contributing Developers) program, how we can
+better utilize it, and ultimately encourage more people to get involved
+in Ubuntu development. But first of all, what is the &lt;span class="caps"&gt;UUC&lt;/span&gt; program&amp;nbsp;anyway?&lt;/p&gt;
+&lt;p&gt;On the&lt;a href="https://wiki.ubuntu.com/UbuntuDevelopers"&gt;wiki page&lt;/a&gt;, Ubuntu Contributing Developers and their roles are
+described&amp;nbsp;as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Are members of the universe-contributors team in&amp;nbsp;Launchpad&lt;/li&gt;
+&lt;li&gt;Are collectively responsible for the maintenance of most of the
+    packages in Ubuntu (the universe and multiverse&amp;nbsp;components)&lt;/li&gt;
+&lt;li&gt;Merge new versions from Debian, work on bugfixes and new&amp;nbsp;packages&lt;/li&gt;
+&lt;li&gt;Continue with sponsored&amp;nbsp;uploads&lt;/li&gt;
+&lt;li&gt;Participate in technical discussions with other Ubuntu developers,
+    providing ideas and&amp;nbsp;feedback&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That&amp;#8217;s pretty vague. A lot of people who aren&amp;#8217;t UUCs do merges, work on
+bug fixes, and get uploads sponsored. The qualifications for joining are
+even more so. You have to meet the requirements to be an &lt;a href="https://wiki.ubuntu.com/Membership"&gt;Ubuntu
+Member&lt;/a&gt; and submit an application to the the &lt;span class="caps"&gt;MOTU&lt;/span&gt;-Council.&lt;/p&gt;
+&lt;p&gt;We need to be more clear on both the goals of the team and what it takes
+to join. But this becomes a bit of a sticky issue. We shouldn&amp;#8217;t be
+placing hard metrics on the requirements for joining. Joining should be
+about the quality not quantity of uploads and connecting contributors to
+the development community not quizzing them on technical aspects.
+Becoming an &lt;span class="caps"&gt;UUC&lt;/span&gt; doesn&amp;#8217;t give you upload rights, but it does make you an
+Ubuntu Member. So while it is a development centered path to Ubuntu
+Membership, its really a community designation not a technical&amp;nbsp;one.&lt;/p&gt;
+&lt;p&gt;So how about who is an &lt;span class="caps"&gt;UUC&lt;/span&gt;? Looking at the &lt;span class="caps"&gt;UUC&lt;/span&gt;&lt;a href="https://edge.launchpad.net/~universe-contributors/+members"&gt;members list&lt;/a&gt;, you see
+that there are 16 individuals on the team. Including Chow Loong Jin
+(&lt;a href="https://edge.launchpad.net/~hyperair"&gt;hyperair&lt;/a&gt;), who just joined, congrats! Of those, nine of us have
+gone on to make &lt;span class="caps"&gt;MOTU&lt;/span&gt;. So there are only seven proper Ubuntu Universe
+Contributors. So, it seems that becoming a &lt;span class="caps"&gt;UUC&lt;/span&gt; is a good step to
+becoming a &lt;span class="caps"&gt;MOTU&lt;/span&gt;, but still not all that many people are using the
+program. In fact, more people have become MOTUs this year so far than
+have become&amp;nbsp;UUCs.&lt;/p&gt;
+&lt;p&gt;According to &lt;a href="http://thc.emgent.org/utu/utu_jaunty.php"&gt;Ubuntu Top Uploaders list&lt;/a&gt;, 395 people uploaded at least
+one package in Jaunty (although it&amp;#8217;s not a completely accurate count as
+some people have more than one listing due to using more than one email
+address). Of those, only about 100 people uploaded more than 10
+packages. The top 25 all have over a hundred uploads. The level of
+involement is amazing, but it is also extremely top heavy. We need to
+shift that curve&amp;nbsp;down.&lt;/p&gt;
+&lt;p&gt;For me, the main goals of the &lt;span class="caps"&gt;UUC&lt;/span&gt; program should be to draw reoccurring
+contributors further into the community and acknowledging them for the
+work they have already done. It&amp;#8217;s about both retaining contributors and
+increasing their involvement. The more connections someone has with a
+project the more likely they will continue to contribute and increase
+their level of commitment. Someone who gets a few patches sponsored into
+Ubuntu but doesen&amp;#8217;t get involved in the community may well switch
+distributions when they have an issue and take their contributions with
+them. Someone who becomes engaed in the community will stick around and
+help solve the&amp;nbsp;issue.&lt;/p&gt;
+&lt;p&gt;We also need to be making it easier for contributors to navigate the
+sometime bureaucratic processes involved with getting patches sponsored
+into Ubuntu. &lt;a href="http://drowninginbugs.blogspot.com/2009/06/action-items-from-uds-barcelona.html"&gt;Dan Chen has already talked&lt;/a&gt;about some of the plans
+coming out of &lt;span class="caps"&gt;UDS&lt;/span&gt; Barcelona, including a new Launchpad group to take on
+this issue,&amp;nbsp;ubuntu-reviewers.&lt;/p&gt;
+&lt;p&gt;As every one who went to &lt;span class="caps"&gt;UDS&lt;/span&gt; is now home, I expect we&amp;#8217;ll hear alot more
+about the discussions that went on there. I&amp;#8217;m looking forward to it, and
+hope to find ways that I can help make the plans made there a&amp;nbsp;reality.&lt;/p&gt;
+&lt;p&gt;So, if you&amp;#8217;ve read this far, what are you&amp;#8217;re thoughts? Have you
+contributed to Ubuntu? What was the most annoying part? Have you
+considered joining the Ubuntu Universe Contributor team? What&amp;#8217;s stopped&amp;nbsp;you?&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Mon, 01 Jun 2009 13:15:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-06-01:2009/06/01/reflections-on-being-an-ubuntu-universe-contributor/</guid><category>community</category><category>MOTU</category><category>Ubuntu</category></item><item><title>“Because humans need Oxygen.”</title><link>http://blog.andrewsomething.com/2009/05/30/because-humans-need-oxygen/</link><description>&lt;p&gt;&lt;a href="http://www.gnome-look.org/content/show.php?content=105873"&gt;&lt;img alt="Breathe Icon Theme" src="http://blog.andrewsomething.com/images/2009/05/breathe.png" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The Ubuntu Artwork community just made the first official beta release
+of the  Breathe Icon Theme. It&amp;#8217;s a refresh of the Human icon theme using
+Oxygen as a base. The idea is to create as modern a set as Oxygen but
+with that distinctly Human&amp;nbsp;feel.&lt;/p&gt;
+&lt;p&gt;You can grab the 0.43 release on the &lt;a href="http://www.gnome-look.org/content/show.php?content=105873"&gt;&lt;span class="caps"&gt;GNOME&lt;/span&gt;-Look page&lt;/a&gt; or on the
+&lt;a href="https://wiki.ubuntu.com/Artwork/BreatheIconSet"&gt;Ubuntu wiki&lt;/a&gt;. You can also check out the source on &lt;a href="https://launchpad.net/breathe-icon-set"&gt;Launchpad&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;It&amp;#8217;s being developed by community members over on the &lt;a href="https://lists.ubuntu.com/mailman/listinfo/ubuntu-art"&gt;Artwork Team
+list-serve&lt;/a&gt;. Drop by, join in and share your&amp;nbsp;ideas.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://creativecommons.org/licenses/by-sa/3.0/us/"&gt;&lt;img alt="Creative Commons License" src="http://i.creativecommons.org/l/by-sa/3.0/us/88x31.png" /&gt;&lt;/a&gt;
+The Breath Icon Theme is licensed under a &lt;a href="http://creativecommons.org/licenses/by-sa/3.0/us/"&gt;Creative Commons
+Attribution-Share Alike 3.0 License&lt;/a&gt;.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Sat, 30 May 2009 06:53:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-05-30:2009/05/30/because-humans-need-oxygen/</guid><category>artwork</category><category>community</category><category>Ubuntu</category></item><item><title>Testing Ubuntu+1 and the Fourms</title><link>http://blog.andrewsomething.com/2009/05/22/testing-ubuntu1-and-the-fourms/</link><description>&lt;p&gt;Ubuntu+1 has an active user based which needs to be better utilized.
+Over at the Ubuntu Forums, there is a &lt;span class="normal"&gt;&lt;a href="http://ubuntuforums.org/forumdisplay.php?f=359"&gt;Karmic Koala
+Testing and Discussion&lt;/a&gt; sub-forum. While it&amp;#8217;s mostly users helping
+each other through the bumpy adventure of running the development
+release (along with some people engaged in seemingly never ending
+complaining about the default theme), it&amp;#8217;s a great&lt;/span&gt; opportunity
+for engaging users in the testing and development process. Some people
+are there simply due to a desire to be running bleeding edge packages,
+but most truly care about making Ubuntu&amp;nbsp;better.&lt;/p&gt;
+&lt;p&gt;One attempt to get people involved is the reoccurring sticky thread at
+the top of the forum:&lt;strong&gt;&lt;a href="http://ubuntuforums.org/showthread.php?t=1161570"&gt;Contributing to Karmic Koala.&lt;/a&gt;&lt;/strong&gt;It appears in
+each development release&amp;#8217;s Testing forum. The guide originally was
+produced by 23meg in the Gutsy cycle, and I refreshed it for the
+Intrepid one. Nullack has gotten it together for the last two cycles,
+and a number of others have contributed. The thread attempts to
+familiarize users with the &lt;a href="https://wiki.ubuntu.com/UbuntuDevelopment"&gt;Ubuntu Development process&lt;/a&gt;, and points
+out ways for people to contribute, from &lt;a href="https://help.ubuntu.com/community/ReportingBugs"&gt;filing bugs&lt;/a&gt; and &lt;a href="https://wiki.ubuntu.com/Testing/ISO/Procedures"&gt;testing &lt;span class="caps"&gt;ISO&lt;/span&gt;
+images&lt;/a&gt; to &lt;a href="https://wiki.ubuntu.com/DocumentationTeam"&gt;contributing documentation&lt;/a&gt; and &lt;a href="https://wiki.ubuntu.com/Bugs/HowToFix"&gt;fixing bugs&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Yet, I think there is more that can be done from the developer side in
+order to engage these intrepid users (and I don&amp;#8217;t mean 8.10). Most
+discussions and calls for testing new features in Ubuntu+1 happen on
+&lt;a href="https://lists.ubuntu.com/mailman/listinfo/ubuntu-devel"&gt;ubuntu-devel&lt;/a&gt;, and I&amp;#8217;m not proposing moving it to the forums. Yet,
+the habits of most developers are quite different than those of most
+users. There&amp;#8217;s a reason that more people seek support on forums than on
+mailing lists. Over on the forums, we have an audience of users running
+Ubuntu+1 who love running the most recent packages and love to let you
+know what they think about them. It&amp;#8217;s the perfect audience for calls for
+testing new features, ect. I&amp;#8217;ve seen a few devs pop up there with such
+requests, but there&amp;#8217;s a lot of missed&amp;nbsp;opportunities.&lt;/p&gt;
+&lt;p&gt;During the Jaunty cycle, I was able to get helpful feed back on a number
+of my uploads by asking users in the forum to test a package in my &lt;span class="caps"&gt;PPA&lt;/span&gt;
+before submitting it for the official archive. Additionally, just by
+lurking around, I caught a few packages that almost sneaked into the
+release broken due to the python&amp;nbsp;transition.&lt;/p&gt;
+&lt;p&gt;While I don&amp;#8217;t expect developers to hold the user&amp;#8217;s hand and provide
+support for running the development release, simple things like
+cross-posting call for testing to the forums could go a long way to
+better taking advantage of an under used&amp;nbsp;resourse.&lt;/p&gt;
+&lt;p&gt;A big thank you to all those brave enough to run the development&amp;nbsp;branch!&lt;/p&gt;
+&lt;p&gt;&lt;span class="caps"&gt;P.S.&lt;/span&gt; Always remember, the is no guarantee that Ubuntu+1 will not eat you
+babies, destroy all your data, or make your computer&amp;nbsp;explode.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Fri, 22 May 2009 18:41:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-05-22:2009/05/22/testing-ubuntu1-and-the-fourms/</guid><category>forums</category><category>testing</category><category>Ubuntu</category></item><item><title>print “Hello, World!”</title><link>http://blog.andrewsomething.com/2009/05/20/print-hello-world/</link><description>&lt;p&gt;Alright, I&amp;#8217;ve been a Ubuntu Member since last October, and I haven&amp;#8217;t set
+up a blog to be syndicated on Planet Ubuntu yet. That changes now. There
+hasn&amp;#8217;t been an UbuntuOne post in almost two days. I just couldn&amp;#8217;t let
+that happen. Let me tell you what I&amp;nbsp;think!&lt;/p&gt;
+&lt;p&gt;Alright, I&amp;#8217;m just kidding. You don&amp;#8217;t have any reason to care what I
+think about anything since chances are you have no idea who I am. So,
+please allow me to introduce&amp;nbsp;myself&amp;#8230;&lt;/p&gt;
+&lt;p&gt;My name is Andrew, and I&amp;#8217;m an &lt;a href="https://edge.launchpad.net/%7Euniverse-contributors" title="The Ubuntu Universe Contributors are collectively responsible for the mainten..."&gt;Ubuntu Universe Contributor&lt;/a&gt; (aka
+Ubuntu Contributing Developer). I&amp;#8217;ve been an Ubuntu user since Feisty
+and an active contributor since the Hardy cycle.  I also maintain a &lt;a href="http://qa.debian.org/developer.php?login=a.starr.b%40gmail.com"&gt;few
+packages&lt;/a&gt; directly in Debian. You can find out more about my specific
+contributions on my &lt;a href="https://wiki.ubuntu.com/Andrewsomething"&gt;wiki page&lt;/a&gt; or on my&lt;a href="https://launchpad.net/~andrewsomething/"&gt;Launchpad profile&lt;/a&gt;. I&amp;#8217;ll
+also be up in front of the &lt;span class="caps"&gt;MOTU&lt;/span&gt;-Council on May 28th, as I&amp;#8217;ve finally
+&lt;a href="https://wiki.ubuntu.com/Andrewsomething/MOTUApplication"&gt;applied to become a &lt;span class="caps"&gt;MOTU&lt;/span&gt;&lt;/a&gt;!&lt;/p&gt;
+&lt;p&gt;So why start a blog? Well, I&amp;#8217;m not sure how much I&amp;#8217;ll end up posting
+here, but I&amp;#8217;d like to think that some of the things I&amp;#8217;ve gone through in
+my journey into the world of Ubuntu development will be helpful to
+others thinking about diving&amp;nbsp;in&amp;#8230;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">andrewsomething</dc:creator><pubDate>Wed, 20 May 2009 22:59:00 -0400</pubDate><guid>tag:blog.andrewsomething.com,2009-05-20:2009/05/20/print-hello-world/</guid><category>me</category><category>MOTU</category><category>Ubuntu</category></item></channel></rss>

@@ -9,11 +9,11 @@
 
         <title>GPG key transition</title>
 
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/css/pure.css">
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/css/style.css">
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/css/pygments.css">
+        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/321aa2707cb805f734afc57be504f740_pure.css">
+        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/cc1740b9f1c1fc6821e2809601a2b48a_style.css">
+        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/88bba058d746a0d767bdee723a04508d_pygments.css">
 
-        <script src="http://blog.andrewsomething.com/theme/js/jquery-1.10.2.js"></script>
+        <script src="http://blog.andrewsomething.com/theme/webassets-external/58768c687b2e46d96188b7f9e98447ee_jquery-1.10.2.js"></script>
 </head>
 
 <body>
@@ -62,41 +62,41 @@ to the new one. I would also like this new key to be re-integrated into
 the web of trust. Please find here <a href="http://people.ubuntu.com/~andrewsomething/key-transition-2010-09-24.txt">a statement signed with both
 keys</a>, certifying the&nbsp;transition.</p>
 <p>The old key&nbsp;was:</p>
-<div class="highlight"><pre><span class="n">pub</span> <span class="mi">1024</span><span class="n">D</span><span class="o">/</span><span class="mf">6286F</span><span class="n">B6D</span> <span class="mi">2007</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">03</span> <span class="n">Key</span> <span class="n">fingerprint</span> <span class="o">=</span> <span class="mi">62</span><span class="n">EE</span> <span class="n">D4F4</span> <span class="mi">6</span><span class="n">D46</span> <span class="n">BE9E</span> <span class="n">FF02</span> <span class="mi">220</span><span class="n">A</span> <span class="mf">2F</span><span class="mi">89</span> <span class="mf">3E7</span><span class="n">C</span> <span class="mi">6286</span> <span class="n">FB6D</span>
+<div class="highlight"><pre>pub 1024D/6286FB6D 2007-11-03 Key fingerprint = 62EE D4F4 6D46 BE9E FF02 220A 2F89 3E7C 6286 FB6D
 </pre></div>
 
 
 <p>And the new key&nbsp;is:</p>
-<div class="highlight"><pre><span class="n">pub</span> <span class="mi">4096</span><span class="n">R</span><span class="o">/</span><span class="n">D53FDCB1</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">24</span> <span class="n">Key</span> <span class="n">fingerprint</span> <span class="o">=</span> <span class="mi">6</span><span class="n">EB2</span> <span class="mi">23</span><span class="n">D7</span> <span class="n">D71E</span> <span class="mi">67</span><span class="n">A5</span> <span class="mi">3</span><span class="n">C93</span> <span class="n">A7DA</span> <span class="mi">3</span><span class="n">B56</span> <span class="n">E2BB</span> <span class="n">D53F</span> <span class="n">DCB1</span>
+<div class="highlight"><pre>pub 4096R/D53FDCB1 2010-09-24 Key fingerprint = 6EB2 23D7 D71E 67A5 3C93 A7DA 3B56 E2BB D53F DCB1
 </pre></div>
 
 
 <p>To fetch my new key from a public key server, you can simply&nbsp;do:</p>
-<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">keyserver</span> <span class="n">pgp</span><span class="p">.</span><span class="n">mit</span><span class="p">.</span><span class="n">edu</span> <span class="o">--</span><span class="n">recv</span><span class="o">-</span><span class="n">key</span> <span class="n">D53FDCB1</span>
+<div class="highlight"><pre>gpg --keyserver pgp.mit.edu --recv-key D53FDCB1
 </pre></div>
 
 
 <p>If you already know my old key, you can now verify that the new key is
 signed by the old&nbsp;one:</p>
-<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">check</span><span class="o">-</span><span class="n">sigs</span> <span class="n">D53FDCB1</span>
+<div class="highlight"><pre>gpg --check-sigs D53FDCB1
 </pre></div>
 
 
 <p>If you don&#8217;t already know my old key, or you just want to be double
 extra paranoid, you can check the fingerprint against the one&nbsp;above:</p>
-<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">fingerprint</span> <span class="n">D53FDCB1</span>
+<div class="highlight"><pre>gpg --fingerprint D53FDCB1
 </pre></div>
 
 
 <p>If you are satisfied that you&#8217;ve got the right key, and the UIDs match
 what you expect, I&#8217;d appreciate it if you would sign my&nbsp;key:</p>
-<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">sign</span><span class="o">-</span><span class="n">key</span> <span class="n">D53FDCB1</span>
+<div class="highlight"><pre>gpg --sign-key D53FDCB1
 </pre></div>
 
 
 <p>Lastly, if you could upload these signatures, i would appreciate it. You
 can just upload the signatures to a public keyserver&nbsp;directly:</p>
-<div class="highlight"><pre><span class="n">gpg</span> <span class="o">--</span><span class="n">keyserver</span> <span class="n">pgp</span><span class="p">.</span><span class="n">mit</span><span class="p">.</span><span class="n">edu</span> <span class="o">--</span><span class="n">send</span><span class="o">-</span><span class="n">key</span> <span class="n">D53FDCB1</span>
+<div class="highlight"><pre>gpg --keyserver pgp.mit.edu --send-key D53FDCB1
 </pre></div>
 
 

@@ -9,11 +9,11 @@
 
         <title>DigitalOcean Indicator</title>
 
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/css/pure.css">
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/css/style.css">
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/css/pygments.css">
+        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/321aa2707cb805f734afc57be504f740_pure.css">
+        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/cc1740b9f1c1fc6821e2809601a2b48a_style.css">
+        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/88bba058d746a0d767bdee723a04508d_pygments.css">
 
-        <script src="http://blog.andrewsomething.com/theme/js/jquery-1.10.2.js"></script>
+        <script src="http://blog.andrewsomething.com/theme/webassets-external/58768c687b2e46d96188b7f9e98447ee_jquery-1.10.2.js"></script>
 </head>
 
 <body>
@@ -65,16 +65,14 @@ manage your droplets directly from your panel. You&nbsp;can:</p>
 <li>Copy your droplet&#8217;s <span class="caps">IP</span> address with a click for easy&nbsp;access.</li>
 </ul>
 <p>You can install it on Ubuntu from my <span class="caps">PPA</span>:</p>
-<div class="highlight"><pre><span class="n">sudo</span> <span class="n">add</span><span class="o">-</span><span class="n">apt</span><span class="o">-</span><span class="n">repository</span> <span class="n">ppa</span><span class="o">:</span><span class="n">andrewsomething</span><span class="o">/</span><span class="n">digitalocean</span>
-<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
-<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">digitalocean</span><span class="o">-</span><span class="n">indicator</span>
+<div class="highlight"><pre>sudo add-apt-repository ppa:andrewsomething/digitalocean
+sudo apt-get update
+sudo apt-get install digitalocean-indicator
 </pre></div>
 
 
 <p>It leverages <a href="https://github.com/koalalorenzo/python-digitalocean">python-digitalocean</a>, an <span class="caps">API</span> wrapper by <a href="https://github.com/koalalorenzo">Lorenzo Setale</a>. It&#8217;s
 also package for Ubuntu in my <span class="caps">PPA</span>.</p>
-<p>It&#8217;s just a quick hack, but it begins to show you what&#8217;s possible with the <span class="caps">API</span>. I
-hope someone else finds it&nbsp;useful.</p>
             <div class="hr"></div>
             <a href="#" class="go-top">Go Top</a>
     <div class="comments">
