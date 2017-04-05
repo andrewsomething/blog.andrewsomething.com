@@ -62,41 +62,41 @@ to the new one. I would also like this new key to be re-integrated into
 the web of trust. Please find here <a href="http://people.ubuntu.com/~andrewsomething/key-transition-2010-09-24.txt">a statement signed with both
 keys</a>, certifying the&nbsp;transition.</p>
 <p>The old key&nbsp;was:</p>
-<div class="highlight"><pre>pub 1024D/6286FB6D 2007-11-03 Key fingerprint = 62EE D4F4 6D46 BE9E FF02 220A 2F89 3E7C 6286 FB6D
+<div class="highlight"><pre><span></span>pub 1024D/6286FB6D 2007-11-03 Key fingerprint = 62EE D4F4 6D46 BE9E FF02 220A 2F89 3E7C 6286 FB6D
 </pre></div>
 
 
 <p>And the new key&nbsp;is:</p>
-<div class="highlight"><pre>pub 4096R/D53FDCB1 2010-09-24 Key fingerprint = 6EB2 23D7 D71E 67A5 3C93 A7DA 3B56 E2BB D53F DCB1
+<div class="highlight"><pre><span></span>pub 4096R/D53FDCB1 2010-09-24 Key fingerprint = 6EB2 23D7 D71E 67A5 3C93 A7DA 3B56 E2BB D53F DCB1
 </pre></div>
 
 
 <p>To fetch my new key from a public key server, you can simply&nbsp;do:</p>
-<div class="highlight"><pre>gpg --keyserver pgp.mit.edu --recv-key D53FDCB1
+<div class="highlight"><pre><span></span>gpg --keyserver pgp.mit.edu --recv-key D53FDCB1
 </pre></div>
 
 
 <p>If you already know my old key, you can now verify that the new key is
 signed by the old&nbsp;one:</p>
-<div class="highlight"><pre>gpg --check-sigs D53FDCB1
+<div class="highlight"><pre><span></span>gpg --check-sigs D53FDCB1
 </pre></div>
 
 
 <p>If you don&#8217;t already know my old key, or you just want to be double
 extra paranoid, you can check the fingerprint against the one&nbsp;above:</p>
-<div class="highlight"><pre>gpg --fingerprint D53FDCB1
+<div class="highlight"><pre><span></span>gpg --fingerprint D53FDCB1
 </pre></div>
 
 
 <p>If you are satisfied that you&#8217;ve got the right key, and the UIDs match
 what you expect, I&#8217;d appreciate it if you would sign my&nbsp;key:</p>
-<div class="highlight"><pre>gpg --sign-key D53FDCB1
+<div class="highlight"><pre><span></span>gpg --sign-key D53FDCB1
 </pre></div>
 
 
 <p>Lastly, if you could upload these signatures, i would appreciate it. You
 can just upload the signatures to a public keyserver&nbsp;directly:</p>
-<div class="highlight"><pre>gpg --keyserver pgp.mit.edu --send-key D53FDCB1
+<div class="highlight"><pre><span></span>gpg --keyserver pgp.mit.edu --send-key D53FDCB1
 </pre></div>
 
 
@@ -119,7 +119,7 @@ can just upload the signatures to a public keyserver&nbsp;directly:</p>
         <noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
     </div>
 <footer class="footer">
-    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a <a href="https://github.com/razius/razius.com/">modified theme</a> based on <a href="https://github.com/danclaudiupop/pure">Pure</a>. Social icons from <a href="http://mokaproject.com/moka-icon-theme/">the Moka Icon Theme</a> by <a href="http://snwh.org/">Sam Hewitt</a>.        <p><small>  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a <a href="https://github.com/razius/razius.com/">modified theme</a> based on <a href="https://github.com/danclaudiupop/pure">Pure</a>. Social icons from the Moka Icon Theme by <a href="http://snwh.org/">Sam Hewitt</a>.        <p><small>  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
     Content
   licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution 4.0 International License</a>, except where indicated otherwise.
 </small></p>
