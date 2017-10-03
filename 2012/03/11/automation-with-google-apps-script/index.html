@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
 
-        <link rel="alternate"  href="http://blog.andrewsomething.com/feeds/all.atom.xml" type="application/atom+xml" title="asb@ubuntu:~$ Full Atom Feed"/>
+        <link rel="alternate"  href="//blog.andrewsomething.com/feeds/all.atom.xml" type="application/atom+xml" title="asb@ubuntu:~$ Full Atom Feed"/>
 
         <title>Automation with Google Apps Script</title>
 
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/321aa2707cb805f734afc57be504f740_pure.css">
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/cc1740b9f1c1fc6821e2809601a2b48a_style.css">
-        <link rel="stylesheet" href="http://blog.andrewsomething.com/theme/webassets-external/88bba058d746a0d767bdee723a04508d_pygments.css">
+        <link rel="stylesheet" href="//blog.andrewsomething.com/theme/webassets-external/321aa2707cb805f734afc57be504f740_pure.css">
+        <link rel="stylesheet" href="//blog.andrewsomething.com/theme/webassets-external/cc1740b9f1c1fc6821e2809601a2b48a_style.css">
+        <link rel="stylesheet" href="//blog.andrewsomething.com/theme/webassets-external/88bba058d746a0d767bdee723a04508d_pygments.css">
 
-        <script src="http://blog.andrewsomething.com/theme/webassets-external/58768c687b2e46d96188b7f9e98447ee_jquery-1.10.2.js"></script>
+        <script src="//blog.andrewsomething.com/theme/webassets-external/58768c687b2e46d96188b7f9e98447ee_jquery-1.10.2.js"></script>
 </head>
 
 <body>
@@ -28,15 +28,14 @@
                     <p class="tagline">An underused blog...</p>
                     <div class="pages-menu">
                         <p>
-                            <span class="links pages"><a href="http://blog.andrewsomething.com/">Home</a></span>
-                                <span class="separator">&#x2022; </span><span class="links pages active"><a href="http://blog.andrewsomething.com/pages/about/">About</a></span>
+                            <span class="links pages"><a href="//blog.andrewsomething.com/">Home</a></span>
                         </p>
                     </div>
                     <p class="social-links">
-                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="http://blog.andrewsomething.com/images/social/github.png" title="GitHub"></a>
-                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="http://blog.andrewsomething.com/images/social/launchpad.png" title="Launchpad"></a>
-                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="http://blog.andrewsomething.com/images/social/google+.png" title="Google+"></a>
-                            <a target="_blank" class="social RssFeed" href="http://blog.andrewsomething.com/feeds/all.atom.xml"><img src="http://blog.andrewsomething.com/images/social/rssfeed.png" title="RssFeed"></a>
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img src="//blog.andrewsomething.com/images/social/github.png" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img src="//blog.andrewsomething.com/images/social/launchpad.png" title="Launchpad"></a>
+                            <a target="_blank" class="social Google+" href="https://plus.google.com/+AndrewStarrBochicchio"><img src="//blog.andrewsomething.com/images/social/google+.png" title="Google+"></a>
+                            <a target="_blank" class="social RssFeed" href="//blog.andrewsomething.com/feeds/all.atom.xml"><img src="//blog.andrewsomething.com/images/social/rssfeed.png" title="RssFeed"></a>
                     </p>
                 </hgroup>
             </header>
@@ -48,9 +47,9 @@
                 <header class="post-header">
                     <h1>Automation with Google Apps&nbsp;Script</h1>
                         <p class="post-meta">
-                            meta = {'category': <a href="http://blog.andrewsomething.com/category/ubuntu/">Ubuntu</a>, 'date': Sun 11 March 2012}
+                            meta = {'category': <a href="//blog.andrewsomething.com/category/ubuntu/">Ubuntu</a>, 'date': Sun 11 March 2012}
                             <div class="meta-tags">
-                                tags = [<a class="post-category" href="http://blog.andrewsomething.com/tag/calendar/">calendar</a><span class="comma">, </span><a class="post-category" href="http://blog.andrewsomething.com/tag/google/">google</a><span class="comma">, </span><a class="post-category" href="http://blog.andrewsomething.com/tag/snippets/">snippets</a><span class="comma">, </span><a class="post-category" href="http://blog.andrewsomething.com/tag/trello/">trello</a><span class="comma">, </span><a class="post-category" href="http://blog.andrewsomething.com/tag/ubuntu/">Ubuntu</a><span class="comma">, </span>]
+                                tags = [<a class="post-category" href="//blog.andrewsomething.com/tag/calendar/">calendar</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/google/">google</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/snippets/">snippets</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/trello/">trello</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/ubuntu/">Ubuntu</a><span class="comma">, </span>]
                             </div>
                         </p>
                 </header>
@@ -65,29 +64,29 @@ process start to finish, scrapping the wiki every few days and pushing
 out updates. But this isn&#8217;t something that I have to do all that often,
 so I just wanted to write something quick and simple. Here&#8217;s what I
 ended up&nbsp;with:</p>
-<div class="highlight"><pre><span></span><span class="nt">var</span> <span class="nt">EVENT_ADDED</span> <span class="o">=</span> <span class="s2">&quot;EVENT_ADDED&quot;</span><span class="o">;</span>
+<div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">EVENT_ADDED</span> <span class="o">=</span> <span class="s2">&quot;EVENT_ADDED&quot;</span><span class="p">;</span>
 
-<span class="nt">function</span> <span class="nt">sheet2cal</span><span class="o">()</span> <span class="p">{</span>
-  <span class="n">var</span> <span class="n">sheet</span> <span class="o">=</span> <span class="n">SpreadsheetApp</span><span class="o">.</span><span class="n">getActiveSheet</span><span class="p">();</span>
-  <span class="n">var</span> <span class="n">startRow</span> <span class="o">=</span> <span class="m">2</span><span class="p">;</span>  <span class="o">//</span> <span class="n">First</span> <span class="n">row</span> <span class="n">of</span> <span class="n">data</span> <span class="n">to</span> <span class="n">process</span>
-  <span class="n">var</span> <span class="n">numRows</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">getLastRow</span><span class="p">()</span><span class="m">-1</span><span class="p">;</span>   <span class="o">//</span> <span class="n">Number</span> <span class="n">of</span> <span class="n">rows</span> <span class="n">to</span> <span class="n">process</span>
-  <span class="n">var</span> <span class="n">dataRange</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">getRange</span><span class="p">(</span><span class="n">startRow</span><span class="o">,</span> <span class="m">1</span><span class="o">,</span> <span class="n">numRows</span><span class="o">,</span> <span class="m">5</span><span class="p">);</span>
-  <span class="n">var</span> <span class="n">data</span> <span class="o">=</span> <span class="n">dataRange</span><span class="o">.</span><span class="n">getValues</span><span class="p">();</span>
-  <span class="n">var</span> <span class="n">cal</span> <span class="o">=</span> <span class="n">CalendarApp</span><span class="o">.</span><span class="n">openByName</span><span class="p">(</span><span class="s2">&quot;Ubuntu Release Schedule&quot;</span><span class="p">);</span>
-  <span class="n">for</span> <span class="p">(</span><span class="n">var</span> <span class="n">i</span> <span class="o">=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">data</span><span class="o">.</span><span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="err">{</span>
-    <span class="n">var</span> <span class="n">row</span> <span class="o">=</span> <span class="n">data</span><span class="cp">[</span><span class="nx">i</span><span class="cp">]</span><span class="p">;</span>
-    <span class="n">var</span> <span class="n">tstart</span> <span class="o">=</span> <span class="n">row</span><span class="cp">[</span><span class="mi">0</span><span class="cp">]</span><span class="p">;</span> 
-    <span class="n">var</span> <span class="n">title</span> <span class="o">=</span> <span class="n">row</span><span class="cp">[</span><span class="mi">1</span><span class="cp">]</span><span class="p">;</span>
-    <span class="n">var</span> <span class="n">desc</span> <span class="o">=</span> <span class="n">row</span><span class="cp">[</span><span class="mi">2</span><span class="cp">]</span><span class="p">;</span>
-    <span class="n">var</span> <span class="n">tstop</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
-    <span class="n">var</span> <span class="n">eventAdded</span> <span class="o">=</span> <span class="n">row</span><span class="cp">[</span><span class="mi">4</span><span class="cp">]</span><span class="p">;</span>
-    <span class="n">if</span> <span class="p">(</span><span class="n">eventAdded</span> <span class="o">!=</span> <span class="n">EVENT_ADDED</span><span class="p">)</span> <span class="err">{</span>  <span class="o">//</span> <span class="n">Prevents</span> <span class="n">sending</span> <span class="n">duplicates</span>
-      <span class="n">cal</span><span class="o">.</span><span class="n">createAllDayEvent</span><span class="p">(</span><span class="n">title</span><span class="o">,</span> <span class="n">tstart</span><span class="o">,</span> <span class="err">{</span><span class="n">description</span><span class="o">:</span><span class="n">desc</span><span class="p">}</span><span class="o">);</span>
-      <span class="nt">sheet</span><span class="nc">.getRange</span><span class="o">(</span><span class="nt">startRow</span> <span class="o">+</span> <span class="nt">i</span><span class="o">,</span> <span class="nt">5</span><span class="o">)</span><span class="nc">.setValue</span><span class="o">(</span><span class="nt">EVENT_ADDED</span><span class="o">);</span>
-      <span class="nt">SpreadsheetApp</span><span class="nc">.flush</span><span class="o">();</span>
-    <span class="err">}</span>
- <span class="err">}</span>
-<span class="err">}</span>
+<span class="kd">function</span> <span class="nx">sheet2cal() {</span>
+  <span class="kd">var</span> <span class="nx">sheet</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActiveSheet</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">startRow</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  <span class="c1">// First row of data to process</span>
+  <span class="kd">var</span> <span class="nx">numRows</span> <span class="o">=</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getLastRow</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>   <span class="c1">// Number of rows to process</span>
+  <span class="kd">var</span> <span class="nx">dataRange</span> <span class="o">=</span> <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="nx">startRow</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">numRows</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">dataRange</span><span class="p">.</span><span class="nx">getValues</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">cal</span> <span class="o">=</span> <span class="nx">CalendarApp</span><span class="p">.</span><span class="nx">openByName</span><span class="p">(</span><span class="s2">&quot;Ubuntu Release Schedule&quot;</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">data</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="o">++</span><span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">row</span> <span class="o">=</span> <span class="nx">data</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+    <span class="kd">var</span> <span class="nx">tstart</span> <span class="o">=</span> <span class="nx">row</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> 
+    <span class="kd">var</span> <span class="nx">title</span> <span class="o">=</span> <span class="nx">row</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+    <span class="kd">var</span> <span class="nx">desc</span> <span class="o">=</span> <span class="nx">row</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+    <span class="kd">var</span> <span class="nx">tstop</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">eventAdded</span> <span class="o">=</span> <span class="nx">row</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">eventAdded</span> <span class="o">!=</span> <span class="nx">EVENT_ADDED</span><span class="p">)</span> <span class="p">{</span>  <span class="c1">// Prevents sending duplicates</span>
+      <span class="nx">cal</span><span class="p">.</span><span class="nx">createAllDayEvent</span><span class="p">(</span><span class="nx">title</span><span class="p">,</span> <span class="nx">tstart</span><span class="p">,</span> <span class="p">{</span><span class="nx">description</span>:<span class="kt">desc</span><span class="p">});</span>
+      <span class="nx">sheet</span><span class="p">.</span><span class="nx">getRange</span><span class="p">(</span><span class="nx">startRow</span> <span class="o">+</span> <span class="nx">i</span><span class="p">,</span> <span class="mi">5</span><span class="p">).</span><span class="nx">setValue</span><span class="p">(</span><span class="nx">EVENT_ADDED</span><span class="p">);</span>
+      <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">flush</span><span class="p">();</span>
+    <span class="p">}</span>
+ <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
@@ -100,10 +99,10 @@ closely based on the <a href="http://code.google.com/googleapps/appsscript/artic
 spreadsheet. This will open an <span class="caps">IDE</span> where you can write, run, and debug
 your script. If you want, you can add a custom menu on your
 spreadsheet&#8217;s tool bar to trigger the script with something&nbsp;like:</p>
-<div class="highlight"><pre><span></span><span class="nt">function</span> <span class="nt">onOpen</span><span class="o">()</span> <span class="p">{</span>
-  <span class="n">var</span> <span class="n">ss</span> <span class="o">=</span> <span class="n">SpreadsheetApp</span><span class="o">.</span><span class="n">getActiveSpreadsheet</span><span class="p">();</span>
-  <span class="n">var</span> <span class="n">menuEntries</span> <span class="o">=</span> <span class="cp">[</span> <span class="p">{</span><span class="nx">name</span><span class="p">:</span> <span class="s2">&quot;Add to calendar&quot;</span><span class="p">,</span> <span class="nx">functionName</span><span class="p">:</span> <span class="s2">&quot;sheet2cal&quot;</span><span class="p">}</span> <span class="cp">]</span><span class="p">;</span>
-  <span class="n">ss</span><span class="o">.</span><span class="n">addMenu</span><span class="p">(</span><span class="s2">&quot;Scripts&quot;</span><span class="o">,</span> <span class="n">menuEntries</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">onOpen() {</span>
+  <span class="kd">var</span> <span class="nx">ss</span> <span class="o">=</span> <span class="nx">SpreadsheetApp</span><span class="p">.</span><span class="nx">getActiveSpreadsheet</span><span class="p">();</span>
+  <span class="kd">var</span> <span class="nx">menuEntries</span> <span class="o">=</span> <span class="p">[</span> <span class="p">{</span><span class="nx">name</span><span class="o">:</span> <span class="s2">&quot;Add to calendar&quot;</span><span class="p">,</span> <span class="nx">functionName</span><span class="o">:</span> <span class="s2">&quot;sheet2cal&quot;</span><span class="p">}</span> <span class="p">];</span>
+  <span class="nx">ss</span><span class="p">.</span><span class="nx">addMenu</span><span class="p">(</span><span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="nx">menuEntries</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -121,7 +120,7 @@ time that I&#8217;ve started&nbsp;using.</p>
         <div id="disqus_thread"></div>
         <script type="text/javascript">
             var disqus_identifier = "2012/03/11/automation-with-google-apps-script/";
-            var disqus_url = "http://blog.andrewsomething.com/2012/03/11/automation-with-google-apps-script/";
+            var disqus_url = "//blog.andrewsomething.com/2012/03/11/automation-with-google-apps-script/";
             (function() {
                 var dsq = document.createElement('script');
                 dsq.type = 'text/javascript';
@@ -130,7 +129,7 @@ time that I&#8217;ve started&nbsp;using.</p>
                 (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
             })();
         </script>
-        <noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+        <noscript>Please enable JavaScript to view <a href="//disqus.com/?ref_noscript">comments</a>.</noscript>
     </div>
 <footer class="footer">
     <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a <a href="https://github.com/razius/razius.com/">modified theme</a> based on <a href="https://github.com/danclaudiupop/pure">Pure</a>. Social icons from the Moka Icon Theme by <a href="http://snwh.org/">Sam Hewitt</a>.        <p><small>  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
