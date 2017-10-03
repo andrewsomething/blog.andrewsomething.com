@@ -5,7 +5,7 @@ Category: DigitalOcean
 Tags: Ubuntu, DigitalOcean, GitHub
 Slug: digitalocean-indicator-release
 
-![DigitalOcean Indicator screenhot](http://i.imgur.com/ssV10vC.png)
+![DigitalOcean Indicator screenhot](//i.imgur.com/ssV10vC.png)
 
 The other weekend I took some time to play around with the [DigitalOcean API,][]
 and this is what resulted. The [DigitalOcean indicator][] allows you to monitor and

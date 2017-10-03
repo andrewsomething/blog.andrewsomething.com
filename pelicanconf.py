@@ -41,7 +41,7 @@ CC_LICENSE = "CC-BY-SA"
 SOCIAL = (('GitHub', 'https://github.com/andrewsomething'),
           ('Launchpad', 'https://launchpad.net/~andrewsomething'),
           ('Google+', 'https://plus.google.com/+AndrewStarrBochicchio'),
-          ('RssFeed', 'http://blog.andrewsomething.com/feeds/all.atom.xml'),)
+          ('RssFeed', '//blog.andrewsomething.com/feeds/all.atom.xml'),)
 
 # URL settings
 PAGINATION_PATTERNS = (
