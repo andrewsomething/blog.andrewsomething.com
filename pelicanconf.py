@@ -75,5 +75,5 @@ PLUGINS = ['assets', 'optimize_images']
 PYGMENTS_RST_OPTIONS = {'cssclass': 'codehilite', 'linenos': 'table'}
 
 WEBASSETS = True
-
-ASSET_SOURCE_PATHS = ('static/',)
+ASSET_SOURCE_PATHS = ['static/']
+ASSET_URL = '/theme/webassets-external'
