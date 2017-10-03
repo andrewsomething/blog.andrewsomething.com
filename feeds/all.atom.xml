@@ -86,13 +86,13 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Hope you find this&amp;nbsp;useful!&lt;/p&gt;</content><category term="Fabric"></category><category term="DigitalOcean"></category><category term="GitHub"></category></entry><entry><title>DigitalOcean Indicator</title><link href="//blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/" rel="alternate"></link><published>2014-04-25T18:45:00-04:00</published><updated>2014-04-25T18:45:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2014-04-25:/2014/04/25/digitalocean-indicator-release/</id><summary type="html">&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="http://i.imgur.com/ssV10vC.png"&gt;&lt;/p&gt;
+&lt;p&gt;Hope you find this&amp;nbsp;useful!&lt;/p&gt;</content><category term="Fabric"></category><category term="DigitalOcean"></category><category term="GitHub"></category></entry><entry><title>DigitalOcean Indicator</title><link href="//blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/" rel="alternate"></link><published>2014-04-25T18:45:00-04:00</published><updated>2014-04-25T18:45:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2014-04-25:/2014/04/25/digitalocean-indicator-release/</id><summary type="html">&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="//i.imgur.com/ssV10vC.png"&gt;&lt;/p&gt;
 &lt;p&gt;The other weekend I took some time to play around with the &lt;a href="https://developers.digitalocean.com/"&gt;DigitalOcean &lt;span class="caps"&gt;API&lt;/span&gt;,&lt;/a&gt;
 and this is what resulted. The &lt;a href="https://github.com/andrewsomething/digitalocean-indicator"&gt;DigitalOcean indicator&lt;/a&gt; allows you to monitor and
 manage your droplets directly from your panel. You&amp;nbsp;can:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Quickly see which droplets are&amp;nbsp;active.&lt;/li&gt;
-&lt;li&gt;Reboot, power on, and/or power down you …&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="http://i.imgur.com/ssV10vC.png"&gt;&lt;/p&gt;
+&lt;li&gt;Reboot, power on, and/or power down you …&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="DigitalOcean Indicator screenhot" src="//i.imgur.com/ssV10vC.png"&gt;&lt;/p&gt;
 &lt;p&gt;The other weekend I took some time to play around with the &lt;a href="https://developers.digitalocean.com/"&gt;DigitalOcean &lt;span class="caps"&gt;API&lt;/span&gt;,&lt;/a&gt;
 and this is what resulted. The &lt;a href="https://github.com/andrewsomething/digitalocean-indicator"&gt;DigitalOcean indicator&lt;/a&gt; allows you to monitor and
 manage your droplets directly from your panel. You&amp;nbsp;can:&lt;/p&gt;
