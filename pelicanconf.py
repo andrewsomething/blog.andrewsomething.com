@@ -40,7 +40,7 @@ CC_LICENSE = "CC-BY-SA"
 # Social widget
 SOCIAL = (('GitHub', 'https://github.com/andrewsomething'),
           ('Launchpad', 'https://launchpad.net/~andrewsomething'),
-          ('Google+', 'https://plus.google.com/+AndrewStarrBochicchio'),
+          ('Twitter', 'https://twitter.com/astarrb'),
           ('RssFeed', '//blog.andrewsomething.com/feeds/all.atom.xml'),)
 
 # URL settings

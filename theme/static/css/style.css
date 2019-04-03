@@ -326,6 +326,7 @@ h1.brand-main {
 .social img {
     width: 48px;
     height: auto;
+    filter: invert(1);
 }
 
 /* LAYOUT CSS */

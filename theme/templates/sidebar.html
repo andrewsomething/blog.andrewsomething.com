@@ -8,7 +8,6 @@
                     <p class="tagline">{{ TAGLINE }}</p>
                     <div class="pages-menu">
                         <p>
-                            <span class="links pages"><a href="{{ SITEURL }}/">Home</a></span>
                             {% for page in PAGES %}
                                 <span class="separator">&#x2022; </span><span class="links pages{% if page == page %} active{% endif %}"><a href="{{ SITEURL }}/{{ page.url }}">{% if page.menu_title %}{{ page.menu_title }}{% else %}{{ page.title }}{% endif %}</a></span>
                             {% endfor %}
@@ -19,7 +18,7 @@
                     {% endfor %}
                     <p class="social-links">
                         {% for title, link in SOCIAL %}
-                            <a target="_blank" class="social {{ title }}" href="{{ link }}"><img src="{{ SITEURL }}/images/social/{{ title|lower }}.png" title="{{ title }}"></a>
+                            <a target="_blank" class="social {{ title }}" href="{{ link }}"><img height="48" width="48" src="{{ SITEURL }}/images/social/{{ title|lower }}.svg" title="{{ title }}"></a>
                         {% endfor %}
                     </p>
                 </hgroup>
