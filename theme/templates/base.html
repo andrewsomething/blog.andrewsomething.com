@@ -19,11 +19,11 @@
     {% endif %}
     <meta name="twitter:card" content="summary" />
     {%if article %}
-    <meta name="twitter:title" content="{{article.title}}" />
+    <meta name="twitter:title" content="{{article.title|striptags}}" />
     <meta name="date" content="{{article.date}}" />
     <meta property="og:type" content="article" />
     <meta property="og:published_time" content="{{article.date}}" />
-    <meta property="og:title" content="{{article.title}}" />
+    <meta property="og:title" content="{{article.title|striptags}}" />
     <meta property="og:url" content="{{SITEURL}}/{{ article.url }}" />
     {% if article.featured_image %}
     <meta property="og:image" content="{{ article.featured_image }}" />
@@ -36,12 +36,12 @@
     <meta name="description" content="{{article.summary|striptags}}" />
     {% endif %}
     {% elif page %}
-    <meta name="twitter:title" content="{{page.title}}" />
+    <meta name="twitter:title" content="{{page.title|striptags}}" />
     <meta name="date" content="{{page.date}}" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="{{page.lang}}" />
     <meta property="og:published_time" content="{{page.date}}" />
-    <meta property="og:title" content="{{page.title}}" />
+    <meta property="og:title" content="{{page.title|striptags}}" />
     <meta property="og:url" content="{{SITEURL}}/{{ page.url }}" />
     {% if page.featured_image %}
     <meta property="og:image" content="{{ page.featured_image }}" />
