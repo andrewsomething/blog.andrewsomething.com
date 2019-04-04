@@ -42,6 +42,7 @@ SOCIAL = (('GitHub', 'https://github.com/andrewsomething'),
           ('Launchpad', 'https://launchpad.net/~andrewsomething'),
           ('Twitter', 'https://twitter.com/astarrb'),
           ('RssFeed', '//blog.andrewsomething.com/feeds/all.atom.xml'),)
+TWITTER_USERNAME = 'astarrb'
 
 # URL settings
 PAGINATION_PATTERNS = (
