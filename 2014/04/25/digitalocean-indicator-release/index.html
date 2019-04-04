@@ -90,14 +90,15 @@ also package for Ubuntu in my <span class="caps">PPA</span>.</p>
     <div class="comments">
         <div id="disqus_thread"></div>
         <script type="text/javascript">
-            var disqus_identifier = "2014/04/25/digitalocean-indicator-release/";
-            var disqus_url = "//blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/";
+            var disqus_config = function () {
+                this.page.url = "2014/04/25/digitalocean-indicator-release/";
+                this.page.identifier = "//blog.andrewsomething.com/2014/04/25/digitalocean-indicator-release/";
+            };
             (function() {
-                var dsq = document.createElement('script');
-                dsq.type = 'text/javascript';
-                dsq.async = true;
-                dsq.src = '//andrewsomething.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                var d = document, s = d.createElement('script');
+                s.src = '//andrewsomething.disqus.com/embed.js';
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
             })();
         </script>
         <noscript>Please enable JavaScript to view <a href="//disqus.com/?ref_noscript">comments</a>.</noscript>

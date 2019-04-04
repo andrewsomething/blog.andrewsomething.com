@@ -91,14 +91,15 @@ banners have also been released. You can grab them <a href="http://www.ubuntu.co
     <div class="comments">
         <div id="disqus_thread"></div>
         <script type="text/javascript">
-            var disqus_identifier = "2009/10/02/ubuntu-9-10-countdown-banners/";
-            var disqus_url = "//blog.andrewsomething.com/2009/10/02/ubuntu-9-10-countdown-banners/";
+            var disqus_config = function () {
+                this.page.url = "2009/10/02/ubuntu-9-10-countdown-banners/";
+                this.page.identifier = "//blog.andrewsomething.com/2009/10/02/ubuntu-9-10-countdown-banners/";
+            };
             (function() {
-                var dsq = document.createElement('script');
-                dsq.type = 'text/javascript';
-                dsq.async = true;
-                dsq.src = '//andrewsomething.disqus.com/embed.js';
-                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                var d = document, s = d.createElement('script');
+                s.src = '//andrewsomething.disqus.com/embed.js';
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
             })();
         </script>
         <noscript>Please enable JavaScript to view <a href="//disqus.com/?ref_noscript">comments</a>.</noscript>
