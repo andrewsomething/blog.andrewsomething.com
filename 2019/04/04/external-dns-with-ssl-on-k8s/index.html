@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="andrewsomething" />
+    <meta name="copyright" content="andrewsomething" />
+    <meta property="og:site_name" content="asb@ubuntu:~$" />
+    <meta name="twitter:site" content="@astarrb" />
+    <meta name="twitter:creator" content="@astarrb" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Setting Up a Domain with <span class="caps">SSL</span> on DigitalOcean Kubernetes using ExternalDNS and&nbsp;Helm" />
+    <meta name="date" content="2019-04-04 00:00:00-04:00" />
+    <meta property="og:type" content="article" />
+    <meta property="og:published_time" content="2019-04-04 00:00:00-04:00" />
+    <meta property="og:title" content="Setting Up a Domain with <span class="caps">SSL</span> on DigitalOcean Kubernetes using ExternalDNS and&nbsp;Helm" />
+    <meta property="og:url" content="//blog.andrewsomething.com/2019/04/04/external-dns-with-ssl-on-k8s/" />
+    <meta property="og:description" content="A little while back I added support for DigitalOcean to the ExternalDNS Helm chart, and I wanted to share my notes on how to use it. ExternalDNS is an extremely convenient tool that allows you to dynamically control DNS records for your Kubernetes resources just by adding an annotation. In …" />
+    <meta name="description" content="A little while back I added support for DigitalOcean to the ExternalDNS Helm chart, and I wanted to share my notes on how to use it. ExternalDNS is an extremely convenient tool that allows you to dynamically control DNS records for your Kubernetes resources just by adding an annotation. In …" />
+
+        <link rel="alternate"  href="//blog.andrewsomething.com/feeds/all.atom.xml" type="application/atom+xml" title="asb@ubuntu:~$ Full Atom Feed"/>
+
+        <title>Setting Up a Domain with SSL on DigitalOcean Kubernetes using ExternalDNS and Helm</title>
+
+        <link rel="stylesheet" href="//blog.andrewsomething.com/theme/webassets-external/321aa2707cb805f734afc57be504f740_pure.css">
+        <link rel="stylesheet" href="//blog.andrewsomething.com/theme/webassets-external/cc1740b9f1c1fc6821e2809601a2b48a_style.css">
+        <link rel="stylesheet" href="//blog.andrewsomething.com/theme/webassets-external/88bba058d746a0d767bdee723a04508d_pygments.css">
+
+        <script src="//blog.andrewsomething.com/theme/webassets-external/58768c687b2e46d96188b7f9e98447ee_jquery-1.10.2.js"></script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+<div class="sidebar pure-u">
+    <div class="cover-img" style="background-color: #272822">
+        <div class="cover-body">
+            <header class="header">
+                <hgroup>
+                    <a href="/"><img class="avatar" src="//www.gravatar.com/avatar/c5187279a8111c09cb5960e47fdc03a8" height="72" width="72"></a>
+                    <h1 class="brand-main"><a href="/">asb@ubuntu:~$</a></h1>
+                    <p class="tagline">An underused blog...</p>
+                    <div class="pages-menu">
+                        <p>
+                        </p>
+                    </div>
+                    <p class="social-links">
+                            <a target="_blank" class="social GitHub" href="https://github.com/andrewsomething"><img height="48" width="48" src="//blog.andrewsomething.com/images/social/github.svg" title="GitHub"></a>
+                            <a target="_blank" class="social Launchpad" href="https://launchpad.net/~andrewsomething"><img height="48" width="48" src="//blog.andrewsomething.com/images/social/launchpad.svg" title="Launchpad"></a>
+                            <a target="_blank" class="social Twitter" href="https://twitter.com/astarrb"><img height="48" width="48" src="//blog.andrewsomething.com/images/social/twitter.svg" title="Twitter"></a>
+                            <a target="_blank" class="social RssFeed" href="//blog.andrewsomething.com/feeds/all.atom.xml"><img height="48" width="48" src="//blog.andrewsomething.com/images/social/rssfeed.svg" title="RssFeed"></a>
+                    </p>
+                </hgroup>
+            </header>
+        </div>
+    </div>
+</div>    <div class="pure-u-3-4">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>Setting Up a Domain with <span class="caps">SSL</span> on DigitalOcean Kubernetes using ExternalDNS and&nbsp;Helm</h1>
+                        <p class="post-meta">
+                            meta = {'category': <a href="//blog.andrewsomething.com/category/digitalocean/">digitalocean</a>, 'date': Thu 04 April 2019}
+                            <div class="meta-tags">
+                                tags = [<a class="post-category" href="//blog.andrewsomething.com/tag/k8s/">k8s</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/digitalocean/">digitalocean</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/external-dns/">external-dns</a><span class="comma">, </span><a class="post-category" href="//blog.andrewsomething.com/tag/lets-encrypt/">lets-encrypt</a><span class="comma">, </span>]
+                            </div>
+                        </p>
+                </header>
+            </section>
+            <p>A little while back I <a href="https://github.com/helm/charts/pull/11257">added support</a> for DigitalOcean to the ExternalDNS Helm chart, and I wanted to share my notes on how to use it. <a href="https://github.com/kubernetes-incubator/external-dns">ExternalDNS</a> is an extremely convenient tool that allows you to dynamically control <span class="caps">DNS</span> records for your Kubernetes resources just by adding an annotation. In this post, I&#8217;ll walk through how to install it with Helm and use it to point a domain at a Kubernetes service. I&#8217;ll also cover setting up <span class="caps">SSL</span> using a DigitalOcean managed <span class="caps">SSL</span> certificate on the load&nbsp;balancer.</p>
+<p>First, a few&nbsp;assumptions:</p>
+<ul>
+<li>You have access to a Kubernetes cluster with&nbsp;kubectl</li>
+<li>You have the <a href="https://helm.sh/docs/using_helm/#installing-the-helm-client">Helm client installed&nbsp;locally</a></li>
+<li>Helm has been configured in the cluster using <a href="https://helm.sh/docs/using_helm/#tiller-and-role-based-access-control">a service account with the correct&nbsp;permissions</a></li>
+<li>You have <code>doctl</code>, the DigitalOcean <span class="caps">CLI</span>, <a href="https://github.com/digitalocean/doctl#installing-doctl">installed&nbsp;locally</a></li>
+<li>You have a <a href="https://www.digitalocean.com/docs/networking/dns/how-to/add-domains/">domain hosted on&nbsp;DigitalOcean</a></li>
+</ul>
+<h2>Installing ExternalDNS with&nbsp;Helm</h2>
+<p>With all of that in place, the first thing to do is install ExternalDNS into the cluster. You will need to <a href="https://www.digitalocean.com/docs/api/create-personal-access-token/">generate a DigitalOcean <span class="caps">API</span> token</a> for it to use. It&#8217;s best to create a token specifically for this service rather than using one you may have in your local environment. Then run the following command replacing <code>$DO_API_TOKEN</code> with the token you&nbsp;generated:</p>
+<div class="highlight"><pre><span></span>helm install --name external-dns \
+  --set digitalocean.apiToken=$DO_API_TOKEN,provider=digitalocean,rbac.create=true \
+  stable/external-dns
+</pre></div>
+
+
+<p>You can verify that it has been successfully installed by&nbsp;running:</p>
+<div class="highlight"><pre><span></span>$ kubectl get pods -l <span class="s2">&quot;app=external-dns&quot;</span>
+</pre></div>
+
+
+<p>When ready, the output should look something like&nbsp;this:</p>
+<div class="highlight"><pre><span></span>NAME                           READY     STATUS    RESTARTS   AGE
+external-dns-68bfc948b-jhhrq   1/1       Running   0          34s
+</pre></div>
+
+
+<h2>Generating a DigitalOcean Managed <span class="caps">SSL</span>&nbsp;Certificate</h2>
+<p>Next, use <code>doctl</code> to generate an <span class="caps">SSL</span> certificate managed by DigitalOcean making use of their Let&#8217;s Encrypt integration. Giving it a name and replacing <code>example.com</code> with your domain,&nbsp;run:</p>
+<div class="highlight"><pre><span></span>doctl compute certificate create  --name k8s-cert \
+  --type lets_encrypt --dns-names example.com
+</pre></div>
+
+
+<p>The output will include an <span class="caps">ID</span> that looks something like <code>9r3e053d-da5e-4390-b7b8-0fs23486e41q</code>. You&#8217;ll need that in the next&nbsp;step.</p>
+<h2>Deploying the Kubernetes&nbsp;Service</h2>
+<p>Now you are ready to deploy your service to the Kubernetes cluster. For this example we are using an <span class="caps">NGINX</span> container for the deployment, but that could be any application running in your cluster. The important part for this exercise is the LoadBalancer Service. Here is the full&nbsp;example:</p>
+<div class="highlight"><pre><span></span><span class="n">kind</span><span class="o">:</span> <span class="n">Service</span>
+<span class="n">apiVersion</span><span class="o">:</span> <span class="n">v1</span>
+<span class="n">metadata</span><span class="o">:</span>
+  <span class="n">name</span><span class="o">:</span> <span class="n">https</span><span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">cert</span>
+  <span class="n">annotations</span><span class="o">:</span>
+    <span class="n">external</span><span class="o">-</span><span class="n">dns</span><span class="o">.</span><span class="na">alpha</span><span class="o">.</span><span class="na">kubernetes</span><span class="o">.</span><span class="na">io</span><span class="o">/</span><span class="n">hostname</span><span class="o">:</span> <span class="s2">&quot;example.com&quot;</span>
+    <span class="n">service</span><span class="o">.</span><span class="na">beta</span><span class="o">.</span><span class="na">kubernetes</span><span class="o">.</span><span class="na">io</span><span class="o">/</span><span class="k">do</span><span class="o">-</span><span class="n">loadbalancer</span><span class="o">-</span><span class="n">redirect</span><span class="o">-</span><span class="n">http</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">https</span><span class="o">:</span> <span class="s2">&quot;true&quot;</span>
+    <span class="n">service</span><span class="o">.</span><span class="na">beta</span><span class="o">.</span><span class="na">kubernetes</span><span class="o">.</span><span class="na">io</span><span class="o">/</span><span class="k">do</span><span class="o">-</span><span class="n">loadbalancer</span><span class="o">-</span><span class="n">certificate</span><span class="o">-</span><span class="n">id</span><span class="o">:</span> <span class="s2">&quot;9r3e053d-da5e-4390-b7b8-0fs23486e41q&quot;</span>
+<span class="n">spec</span><span class="o">:</span>
+  <span class="n">type</span><span class="o">:</span> <span class="n">LoadBalancer</span>
+  <span class="n">selector</span><span class="o">:</span>
+    <span class="n">app</span><span class="o">:</span> <span class="n">nginx</span><span class="o">-</span><span class="n">example</span>
+  <span class="n">ports</span><span class="o">:</span>
+    <span class="o">-</span> <span class="n">name</span><span class="o">:</span> <span class="n">https</span>
+      <span class="n">protocol</span><span class="o">:</span> <span class="n">TCP</span>
+      <span class="n">port</span><span class="o">:</span> <span class="mi">443</span>
+      <span class="n">targetPort</span><span class="o">:</span> <span class="mi">80</span>
+
+<span class="o">---</span>
+<span class="n">apiVersion</span><span class="o">:</span> <span class="n">extensions</span><span class="o">/</span><span class="n">v1beta1</span>
+<span class="n">kind</span><span class="o">:</span> <span class="n">Deployment</span>
+<span class="n">metadata</span><span class="o">:</span>
+  <span class="n">name</span><span class="o">:</span> <span class="n">nginx</span><span class="o">-</span><span class="n">example</span>
+<span class="n">spec</span><span class="o">:</span>
+  <span class="n">replicas</span><span class="o">:</span> <span class="mi">1</span>
+  <span class="n">template</span><span class="o">:</span>
+    <span class="n">metadata</span><span class="o">:</span>
+      <span class="n">labels</span><span class="o">:</span>
+        <span class="n">app</span><span class="o">:</span> <span class="n">nginx</span><span class="o">-</span><span class="n">example</span>
+    <span class="n">spec</span><span class="o">:</span>
+      <span class="n">containers</span><span class="o">:</span>
+      <span class="o">-</span> <span class="n">name</span><span class="o">:</span> <span class="n">nginx</span>
+        <span class="n">image</span><span class="o">:</span> <span class="n">nginx</span>
+        <span class="n">ports</span><span class="o">:</span>
+        <span class="o">-</span> <span class="n">containerPort</span><span class="o">:</span> <span class="mi">80</span>
+          <span class="n">protocol</span><span class="o">:</span> <span class="n">TCP</span>
+</pre></div>
+
+
+<p>Let&#8217;s look a little closer at the <code>annotations</code> section:</p>
+<div class="highlight"><pre><span></span>  annotations:
+    external-dns.alpha.kubernetes.io/hostname: &quot;example.com&quot;
+    service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: &quot;true&quot;
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: &quot;9r3e053d-da5e-4390-b7b8-0fs23486e41q&quot;
+</pre></div>
+
+
+<p><a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/">Kubernetes annotations</a> are just metadata attached to a Kubernetes object. They can be used for anything from specifying a maintainer for the service to a git commit hash or other release information. They can also be used to pass on information to controllers. In our case, both the <a href="https://github.com/digitalocean/digitalocean-cloud-controller-manager">DigitalOcean Cloud Controller Manager</a> and the ExternalDNS controller are watching for services created with these annotations. Breaking down each&nbsp;one:</p>
+<ul>
+<li><code>external-dns.alpha.kubernetes.io/hostname</code> - Specifies the domain name to be assigned to the&nbsp;service</li>
+<li><code>service.beta.kubernetes.io/do-loadbalancer-certificate-id</code> - Specifies the <span class="caps">ID</span> of the DigitalOcean managed <span class="caps">SSL</span>&nbsp;cert</li>
+<li><code>service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https</code> - Configures the load balancer to automatically redirect clients from <span class="caps">HTTP</span> to <span class="caps">HTTPS</span></li>
+</ul>
+<p>After replacing the domain and certificate <span class="caps">ID</span> in the full example and saving it to a file, apply the configuration&nbsp;with:</p>
+<div class="highlight"><pre><span></span>kubectl apply -f path/to/https-with-domain.yaml
+</pre></div>
+
+
+<p>Now let&#8217;s take a quick look at the logs for ExternalDNS by&nbsp;running:</p>
+<div class="highlight"><pre><span></span>kubectl logs \
+  `kubectl get pod -l app=external-dns -o jsonpath=&quot;{.items[0].metadata.name}&quot;`
+</pre></div>
+
+
+<p>When the record has been successfully configured, you will see two lines&nbsp;like:</p>
+<div class="highlight"><pre><span></span>time=&quot;2019-04-04T01:19:11Z&quot; level=info msg=&quot;Changing record.&quot; action=CREATE record=example.com ttl=300 type=A zone=example.com
+time=&quot;2019-04-04T01:19:12Z&quot; level=info msg=&quot;Changing record.&quot; action=CREATE record=example.com ttl=300 type=TXT zone=example.com
+</pre></div>
+
+
+<p>You might be wondering why it created two records. ExternalDNS uses <code>TXT</code> records to mark records that it manages. It will not modify any records without a corresponding <code>TXT</code> record.</p>
+<h2>Wrapping It&nbsp;Up</h2>
+<p>With our service successfully deployed, it will now be available at the configured domain with <span class="caps">SSL</span>. If we redeploy the service latter, the <span class="caps">DNS</span> record will persist even if the underlying <span class="caps">IP</span> address were to change. If you&#8217;re looking for more detail, here&#8217;s some further reading for&nbsp;you:</p>
+<ul>
+<li><a href="https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples">Examples with additional configuration details for DigitalOcean load balancers using Kubernetes&nbsp;annotations</a></li>
+<li><a href="https://github.com/helm/charts/tree/master/stable/external-dns#configuration">The full list of configuration details for the ExternalDNS Helm&nbsp;chart</a></li>
+</ul>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+    <div class="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            var disqus_identifier = "2019/04/04/external-dns-with-ssl-on-k8s/";
+            var disqus_url = "//blog.andrewsomething.com/2019/04/04/external-dns-with-ssl-on-k8s/";
+            (function() {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//andrewsomething.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view <a href="//disqus.com/?ref_noscript">comments</a>.</noscript>
+    </div>
+<footer class="footer">
+    <p>Powered by <a href="http://blog.getpelican.com/">Pelican</a> with a <a href="https://github.com/razius/razius.com/">modified theme</a> based on <a href="https://github.com/danclaudiupop/pure">Pure</a>. Social icons from <a href="https://simpleicons.org/">SimpleIcons.org</a>.        <p><small>  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="//i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>
+    Content
+  licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution 4.0 International License</a>, except where indicated otherwise.
+</small></p>
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50175676-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+</body>
+</html>

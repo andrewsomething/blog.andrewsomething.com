@@ -1,5 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>asb@ubuntu:~$</title><link href="//blog.andrewsomething.com/" rel="alternate"></link><link href="//blog.andrewsomething.com/feeds/all.atom.xml" rel="self"></link><id>//blog.andrewsomething.com/</id><updated>2017-04-04T00:00:00-04:00</updated><entry><title>A Few Recent DigitalOcean Tools</title><link href="//blog.andrewsomething.com/2017/04/04/recent-digitalocean-tools/" rel="alternate"></link><published>2017-04-04T00:00:00-04:00</published><updated>2017-04-04T00:00:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2017-04-04:/2017/04/04/recent-digitalocean-tools/</id><summary type="html">&lt;p&gt;Obligatory comment about how it&amp;#8217;s been quite awhile since the last time I&amp;#8217;ve&amp;nbsp;blogged&amp;#8230;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>asb@ubuntu:~$</title><link href="//blog.andrewsomething.com/" rel="alternate"></link><link href="//blog.andrewsomething.com/feeds/all.atom.xml" rel="self"></link><id>//blog.andrewsomething.com/</id><updated>2019-04-04T00:00:00-04:00</updated><entry><title>Setting Up a Domain with SSL on DigitalOcean Kubernetes using ExternalDNS and Helm</title><link href="//blog.andrewsomething.com/2019/04/04/external-dns-with-ssl-on-k8s/" rel="alternate"></link><published>2019-04-04T00:00:00-04:00</published><updated>2019-04-04T00:00:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2019-04-04:/2019/04/04/external-dns-with-ssl-on-k8s/</id><summary type="html">&lt;p&gt;A little while back I &lt;a href="https://github.com/helm/charts/pull/11257"&gt;added support&lt;/a&gt; for DigitalOcean to the ExternalDNS Helm chart, and I wanted to share my notes on how to use it. &lt;a href="https://github.com/kubernetes-incubator/external-dns"&gt;ExternalDNS&lt;/a&gt; is an extremely convenient tool that allows you to dynamically control &lt;span class="caps"&gt;DNS&lt;/span&gt; records for your Kubernetes resources just by adding an annotation. In …&lt;/p&gt;</summary><content type="html">&lt;p&gt;A little while back I &lt;a href="https://github.com/helm/charts/pull/11257"&gt;added support&lt;/a&gt; for DigitalOcean to the ExternalDNS Helm chart, and I wanted to share my notes on how to use it. &lt;a href="https://github.com/kubernetes-incubator/external-dns"&gt;ExternalDNS&lt;/a&gt; is an extremely convenient tool that allows you to dynamically control &lt;span class="caps"&gt;DNS&lt;/span&gt; records for your Kubernetes resources just by adding an annotation. In this post, I&amp;#8217;ll walk through how to install it with Helm and use it to point a domain at a Kubernetes service. I&amp;#8217;ll also cover setting up &lt;span class="caps"&gt;SSL&lt;/span&gt; using a DigitalOcean managed &lt;span class="caps"&gt;SSL&lt;/span&gt; certificate on the load&amp;nbsp;balancer.&lt;/p&gt;
+&lt;p&gt;First, a few&amp;nbsp;assumptions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;You have access to a Kubernetes cluster with&amp;nbsp;kubectl&lt;/li&gt;
+&lt;li&gt;You have the &lt;a href="https://helm.sh/docs/using_helm/#installing-the-helm-client"&gt;Helm client installed&amp;nbsp;locally&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Helm has been configured in the cluster using &lt;a href="https://helm.sh/docs/using_helm/#tiller-and-role-based-access-control"&gt;a service account with the correct&amp;nbsp;permissions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;You have &lt;code&gt;doctl&lt;/code&gt;, the DigitalOcean &lt;span class="caps"&gt;CLI&lt;/span&gt;, &lt;a href="https://github.com/digitalocean/doctl#installing-doctl"&gt;installed&amp;nbsp;locally&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;You have a &lt;a href="https://www.digitalocean.com/docs/networking/dns/how-to/add-domains/"&gt;domain hosted on&amp;nbsp;DigitalOcean&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Installing ExternalDNS with&amp;nbsp;Helm&lt;/h2&gt;
+&lt;p&gt;With all of that in place, the first thing to do is install ExternalDNS into the cluster. You will need to &lt;a href="https://www.digitalocean.com/docs/api/create-personal-access-token/"&gt;generate a DigitalOcean &lt;span class="caps"&gt;API&lt;/span&gt; token&lt;/a&gt; for it to use. It&amp;#8217;s best to create a token specifically for this service rather than using one you may have in your local environment. Then run the following command replacing &lt;code&gt;$DO_API_TOKEN&lt;/code&gt; with the token you&amp;nbsp;generated:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;helm install --name external-dns \
+  --set digitalocean.apiToken=$DO_API_TOKEN,provider=digitalocean,rbac.create=true \
+  stable/external-dns
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can verify that it has been successfully installed by&amp;nbsp;running:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl get pods -l &lt;span class="s2"&gt;&amp;quot;app=external-dns&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When ready, the output should look something like&amp;nbsp;this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;NAME                           READY     STATUS    RESTARTS   AGE
+external-dns-68bfc948b-jhhrq   1/1       Running   0          34s
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Generating a DigitalOcean Managed &lt;span class="caps"&gt;SSL&lt;/span&gt;&amp;nbsp;Certificate&lt;/h2&gt;
+&lt;p&gt;Next, use &lt;code&gt;doctl&lt;/code&gt; to generate an &lt;span class="caps"&gt;SSL&lt;/span&gt; certificate managed by DigitalOcean making use of their Let&amp;#8217;s Encrypt integration. Giving it a name and replacing &lt;code&gt;example.com&lt;/code&gt; with your domain,&amp;nbsp;run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;doctl compute certificate create  --name k8s-cert \
+  --type lets_encrypt --dns-names example.com
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The output will include an &lt;span class="caps"&gt;ID&lt;/span&gt; that looks something like &lt;code&gt;9r3e053d-da5e-4390-b7b8-0fs23486e41q&lt;/code&gt;. You&amp;#8217;ll need that in the next&amp;nbsp;step.&lt;/p&gt;
+&lt;h2&gt;Deploying the Kubernetes&amp;nbsp;Service&lt;/h2&gt;
+&lt;p&gt;Now you are ready to deploy your service to the Kubernetes cluster. For this example we are using an &lt;span class="caps"&gt;NGINX&lt;/span&gt; container for the deployment, but that could be any application running in your cluster. The important part for this exercise is the LoadBalancer Service. Here is the full&amp;nbsp;example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;kind&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Service&lt;/span&gt;
+&lt;span class="n"&gt;apiVersion&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;v1&lt;/span&gt;
+&lt;span class="n"&gt;metadata&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;with&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cert&lt;/span&gt;
+  &lt;span class="n"&gt;annotations&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;external&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;alpha&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;kubernetes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;io&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;hostname&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;example.com&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;service&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;beta&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;kubernetes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;io&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;do&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;loadbalancer&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;redirect&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;true&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;service&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;beta&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;kubernetes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;io&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;do&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;loadbalancer&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;certificate&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;9r3e053d-da5e-4390-b7b8-0fs23486e41q&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;spec&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;LoadBalancer&lt;/span&gt;
+  &lt;span class="n"&gt;selector&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;example&lt;/span&gt;
+  &lt;span class="n"&gt;ports&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;
+      &lt;span class="n"&gt;protocol&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;TCP&lt;/span&gt;
+      &lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;443&lt;/span&gt;
+      &lt;span class="n"&gt;targetPort&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;
+
+&lt;span class="o"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;apiVersion&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;extensions&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;v1beta1&lt;/span&gt;
+&lt;span class="n"&gt;kind&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Deployment&lt;/span&gt;
+&lt;span class="n"&gt;metadata&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;example&lt;/span&gt;
+&lt;span class="n"&gt;spec&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;replicas&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+  &lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;metadata&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+      &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;example&lt;/span&gt;
+    &lt;span class="n"&gt;spec&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+      &lt;span class="n"&gt;containers&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+      &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;
+        &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;
+        &lt;span class="n"&gt;ports&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+        &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;containerPort&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;
+          &lt;span class="n"&gt;protocol&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;TCP&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Let&amp;#8217;s look a little closer at the &lt;code&gt;annotations&lt;/code&gt; section:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;  annotations:
+    external-dns.alpha.kubernetes.io/hostname: &amp;quot;example.com&amp;quot;
+    service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: &amp;quot;true&amp;quot;
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: &amp;quot;9r3e053d-da5e-4390-b7b8-0fs23486e41q&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/"&gt;Kubernetes annotations&lt;/a&gt; are just metadata attached to a Kubernetes object. They can be used for anything from specifying a maintainer for the service to a git commit hash or other release information. They can also be used to pass on information to controllers. In our case, both the &lt;a href="https://github.com/digitalocean/digitalocean-cloud-controller-manager"&gt;DigitalOcean Cloud Controller Manager&lt;/a&gt; and the ExternalDNS controller are watching for services created with these annotations. Breaking down each&amp;nbsp;one:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;external-dns.alpha.kubernetes.io/hostname&lt;/code&gt; - Specifies the domain name to be assigned to the&amp;nbsp;service&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;service.beta.kubernetes.io/do-loadbalancer-certificate-id&lt;/code&gt; - Specifies the &lt;span class="caps"&gt;ID&lt;/span&gt; of the DigitalOcean managed &lt;span class="caps"&gt;SSL&lt;/span&gt;&amp;nbsp;cert&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https&lt;/code&gt; - Configures the load balancer to automatically redirect clients from &lt;span class="caps"&gt;HTTP&lt;/span&gt; to &lt;span class="caps"&gt;HTTPS&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;After replacing the domain and certificate &lt;span class="caps"&gt;ID&lt;/span&gt; in the full example and saving it to a file, apply the configuration&amp;nbsp;with:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;kubectl apply -f path/to/https-with-domain.yaml
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now let&amp;#8217;s take a quick look at the logs for ExternalDNS by&amp;nbsp;running:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;kubectl logs \
+  `kubectl get pod -l app=external-dns -o jsonpath=&amp;quot;{.items[0].metadata.name}&amp;quot;`
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When the record has been successfully configured, you will see two lines&amp;nbsp;like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;time=&amp;quot;2019-04-04T01:19:11Z&amp;quot; level=info msg=&amp;quot;Changing record.&amp;quot; action=CREATE record=example.com ttl=300 type=A zone=example.com
+time=&amp;quot;2019-04-04T01:19:12Z&amp;quot; level=info msg=&amp;quot;Changing record.&amp;quot; action=CREATE record=example.com ttl=300 type=TXT zone=example.com
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You might be wondering why it created two records. ExternalDNS uses &lt;code&gt;TXT&lt;/code&gt; records to mark records that it manages. It will not modify any records without a corresponding &lt;code&gt;TXT&lt;/code&gt; record.&lt;/p&gt;
+&lt;h2&gt;Wrapping It&amp;nbsp;Up&lt;/h2&gt;
+&lt;p&gt;With our service successfully deployed, it will now be available at the configured domain with &lt;span class="caps"&gt;SSL&lt;/span&gt;. If we redeploy the service latter, the &lt;span class="caps"&gt;DNS&lt;/span&gt; record will persist even if the underlying &lt;span class="caps"&gt;IP&lt;/span&gt; address were to change. If you&amp;#8217;re looking for more detail, here&amp;#8217;s some further reading for&amp;nbsp;you:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples"&gt;Examples with additional configuration details for DigitalOcean load balancers using Kubernetes&amp;nbsp;annotations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/helm/charts/tree/master/stable/external-dns#configuration"&gt;The full list of configuration details for the ExternalDNS Helm&amp;nbsp;chart&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="k8s"></category><category term="digitalocean"></category><category term="external-dns"></category><category term="lets-encrypt"></category></entry><entry><title>A Few Recent DigitalOcean Tools</title><link href="//blog.andrewsomething.com/2017/04/04/recent-digitalocean-tools/" rel="alternate"></link><published>2017-04-04T00:00:00-04:00</published><updated>2017-04-04T00:00:00-04:00</updated><author><name>andrewsomething</name></author><id>tag:blog.andrewsomething.com,2017-04-04:/2017/04/04/recent-digitalocean-tools/</id><summary type="html">&lt;p&gt;Obligatory comment about how it&amp;#8217;s been quite awhile since the last time I&amp;#8217;ve&amp;nbsp;blogged&amp;#8230;&lt;/p&gt;
 &lt;p&gt;With that out of the way, I wanted to share a few things that I&amp;#8217;ve done recently that might be useful for others. In particular, there are a couple &lt;a href="https://www.digitalocean.com"&gt;DigitalOcean&lt;/a&gt; related tools that …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Obligatory comment about how it&amp;#8217;s been quite awhile since the last time I&amp;#8217;ve&amp;nbsp;blogged&amp;#8230;&lt;/p&gt;
 &lt;p&gt;With that out of the way, I wanted to share a few things that I&amp;#8217;ve done recently that might be useful for others. In particular, there are a couple &lt;a href="https://www.digitalocean.com"&gt;DigitalOcean&lt;/a&gt; related tools that might come in&amp;nbsp;handy.&lt;/p&gt;
 &lt;h2&gt;fabric-digitalocean&lt;/h2&gt;
